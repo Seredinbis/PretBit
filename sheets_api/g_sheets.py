@@ -1,9 +1,11 @@
 import apiclient
 import httplib2
 import datetime
-import config_data.config
+import os
+import json
 
 from oauth2client.service_account import ServiceAccountCredentials
+from config_data.config import load_config
 
 
 class LightPerson:
@@ -18,9 +20,16 @@ class LightPerson:
         # day_index - индекс текущего дня
         # col_row_in_day - колличество рядов в дне
         # values_for_name - все значения для фамилии, в текущий день
+
+        # тут узнаем путь к файлу и получаем токен из него
+        abspath = os.path.abspath('.env')
+        config = load_config(abspath)
+        json_token: dict = config.google_sheets_api.token
+        google_sheets_token = json.loads(json_token)
+
         self.sname = sname
         self.spreadsheet_ID = '1iw2mz3md74UeCIMy3eXnfBH-E2-rhwBkWosxwVZVJxM'
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(config_data.config.google_sheets_token,
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(google_sheets_token,
                                                                        ["https://www.googleapis.com/auth/spreadsheets",
                                                                         "https://www.googleapis.com/auth/drive"])
         httpauth = credentials.authorize(httplib2.Http())
@@ -47,6 +56,7 @@ class LightPerson:
                             'Ерусалимский': 'Осветитель',
                             'Вознесенский': 'Осветитель',
                             'Буканов': 'Осветитель',
+                            'Мосеев': 'Осветитель',
                             'Лизунова': 'Светооператор',
                             'Яхонтова': 'Светооператор',
                             'Чумичёва': 'Светооператор'}
@@ -105,7 +115,6 @@ class LightPerson:
         for mounth in list_name[::-1]:
             if month_list[month_number] in mounth.lower() and str(now.year)[-2:] in mounth:
                 return mounth
-        print('Данного месяца нет в таблице!')
 
     def get_amount_rows(self, list_name=None) -> str:
         # Возвращает количество рядов в листе текущего месяца
@@ -205,7 +214,7 @@ class LightPerson:
 
 
 class SickTest(LightPerson):
-    def generate_table_col_index(self, sick_day_plus=0, day_index = None) -> str:
+    def generate_table_col_index(self, sick_day_plus=0, day_index=None) -> str:
         # Уравнение присваивания индекса колонки
         # print('generate_table_col_index')
         # 25 ,erd
@@ -235,7 +244,8 @@ class SickTest(LightPerson):
         # Проверка цвета ячейки на больничный
         # print('sick_day_test')
         word_index_info = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_ID,
-                                                          ranges=self.generate_table_col_index(sick_day_plus, day_index),
+                                                          ranges=self.generate_table_col_index(sick_day_plus,
+                                                                                               day_index),
                                                           includeGridData=True).execute()
         color = word_index_info['sheets'][0]['data'][0]['rowData'][0]['values'][0]['effectiveFormat']['backgroundColor']
         if color == {'red': 1, 'green': 1}:
@@ -327,6 +337,7 @@ class WorkTest(LightPerson):
             work_time = self.get_work_time(self.values_for_name)
         if len(self.sort_work_row()) == 1:
             # цикл, чтобы достать словарь из списка
+            # нужно ли денлать tuple?????
             for work in self.sort_work_row():
                 return f'<b>У Вас сегодня рабочий день!</b>\nСегодня в театре:\n' \
                        f'{self.get_who_working(quests=self.sort_work_row())}\n' \
@@ -376,12 +387,13 @@ class WorkTest(LightPerson):
                                 # если у человека больничный - добавляем ему в скобочках(на больничном)
                                 # этот кусок кода не можети быть исопльзован, так как с постоянными запросами
                                 # сервер крашиться, превышается допкстимое количесво запросов
-                                # print(SickTest(data_for_calendar[ind][4].split(' ')[0]).sick_day_test(day_index=day_ind))
+                                # print(SickTest(data_for_calendar[ind][4].split(' ')[0]).
+                                # sick_day_test(day_index=day_ind))
                                 # if SickTest(data_for_calendar[ind][4].split(' ')[0]).sick_day_test(day_index=day_ind):
                                 #     print(day_ind)
-                                    # print(data_for_calendar[ind][4].split(' ')[0])
-                                    # print('VOT ONO')
-                                    # who_str += data_for_calendar[ind][4].split(' ')[0] + '(на больничном)' + ', '
+                                # print(data_for_calendar[ind][4].split(' ')[0])
+                                # print('VOT ONO')
+                                # who_str += data_for_calendar[ind][4].split(' ')[0] + '(на больничном)' + ', '
                                 # else:
                                 who_str += data_for_calendar[ind][4].split(' ')[0] + ', '
             who_list.append(who_str[:-2:])
@@ -391,14 +403,14 @@ class WorkTest(LightPerson):
                           f' {who_list[index_plus].count(",") + 1}\n' \
                           f'<b>Cостав смены:</b> {who_list[index_plus]}\n\n'
             elif quests == data_work:
-                for index_plus in range(len(data_work)):
+                for index_pluss in range(len(data_work)):
                     for index in equals_index:
-                        result += f'{quest[index_plus]}\n<b>Количество работников на смене:</b>' \
-                                  f' {who_list[index].count(",") + 1}\n' \
-                                  f'<b>Cостав смены:</b> {who_list[index]}\n\n'
+                        result += f'{quest[index_pluss]}\n<b>Количество работников на смене:</b>' \
+                                f'{who_list[index].count(",") + 1}\n' \
+                                f'<b>Cостав смены:</b> {who_list[index]}\n\n'
                         equals_index.pop(0)
                         break
-        return result
+            return result
 
     @staticmethod
     def get_col_quest(quests) -> str:
@@ -497,7 +509,7 @@ class BotButton(WorkTest):
             if work_time['Наименование смены'] == 'Выходной':
                 return f'В этот, {work_time["День текущего месяца"]}.{month}.{year}, день <b>ОБЩИЙ ВЫХОДНОЙ!</b>'
             if work_time['Кол-во рабочих часов в смене'] != '':
-                if (0 <= int(work_time['Время начала смены'][::3]) <= 5) or\
+                if (0 <= int(work_time['Время начала смены'][::3]) <= 5) or \
                         int(work_time['Время окончания смены'][:2:]) == 24:
                     work = f'<b>У вас в этот день, {day_number}.{month}.{year},' \
                            f' ночная смена!</b>\n'
@@ -579,8 +591,24 @@ class BotButton(WorkTest):
         else:
             return 'недоработка'
 
-    class ResultPrint(LightPerson):
-        pass
+
+class ResultPrint(LightPerson):
+    def today_button(self) -> (tuple, str):
+        if SickTest(self.sname).if_sick() is not None:
+            return SickTest(self.sname).if_sick()
+        elif NightWorkTest(self.sname).if_night() is not None:
+            return NightWorkTest(self.sname).if_night()
+        else:
+            return WorkTest(self.sname).if_work()
+
+    def list_of_employees(self) -> list:
+        list_of_employess = []
+        for i in self.ALL_values['values']:
+            if len(i) < 1:
+                continue
+            elif len(i[4]) > 4:
+                list_of_employess.append(i[4].split(' ')[0])
+        return list_of_employess
 
 # a = LightPerson('Середин')
 # print(a.get_correct_list_name())
@@ -622,5 +650,7 @@ class BotButton(WorkTest):
 # print('ged')
 # print(d.ged())
 # print()
-e = BotButton('Середин')
-print(e.for_calendar_button(15))
+# e = BotButton('Середин')
+# print(e.for_calendar_button(15))
+# f = ResultPrint('Середин')
+# print(f.list_of_employees())
