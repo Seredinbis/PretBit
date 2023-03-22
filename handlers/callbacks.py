@@ -17,7 +17,6 @@ router_callbacks = Router()
 # фильтр на содержание даты в тюпле фамилий
 @router_callbacks.callback_query(lambda call: call.data in csn)
 async def set_user_second_name(callback: CallbackQuery, state: FSMContext) -> None:
- # принт для остлеживания действий пользователя
     user_data = await state.get_data()
     await state.update_data(login=True)
     if 'user_seecond_name' in user_data:

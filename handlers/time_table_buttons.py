@@ -55,43 +55,49 @@ async def get_personal_time_table(message: Message, state: FSMContext) -> None:
 async def time_table_menu(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    msg = await message.answer(text='Выберите  интересующий вас пункт!',
-                               reply_markup=month_choose_kb.as_markup())
-    await state.update_data(whitch_kb_was='time_table_kb')
-    await message.delete()
-    await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
-                                                              message_id=msg.message_id,
-                                                              state=state)
+    if await support_function.login_test.log_test(message=message,
+                                                  state=state):
+        msg = await message.answer(text='Выберите  интересующий вас пункт!',
+                                   reply_markup=month_choose_kb.as_markup())
+        await state.update_data(whitch_kb_was='time_table_kb')
+        await message.delete()
+        await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
+                                                                  message_id=msg.message_id,
+                                                                  state=state)
 
 
 @router_time_table.message(Text(month))
 async def time_table_menu(message: Message, state: FSMContext) -> None:
-    user_data = await state.get_data()
-    user_sn = user_data['user_second_name']
-    if user_sn == 'Василевский' or user_sn == 'Крусер':
-        user_sn = 'Быкова'
-    await message.delete()
-    if message.text == 'За все отработанное время':
-        msg = await message.answer(text='Идет загрузка...')
-        await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
-                                                                  message_id=msg.message_id,
-                                                                  state=state)
-        msg1 = await message.answer(text=BotButton(user_sn).get_all_work_hours(),
-                                    reply_markup=month_choose_kb.as_markup(),
-                                    parse_mode='HTML')
-        await state.update_data(whitch_kb_was='time_table_kb')
-        await support_function.delete_pre_message.del_pre_message(chat_id=msg1.chat.id,
-                                                                  message_id=msg1.message_id,
-                                                                  state=state)
-    else:
-        msg = await message.answer(text='Идет загрузка...')
-        await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
-                                                                  message_id=msg.message_id,
-                                                                  state=state)
-        msg1 = await message.answer(text=BotButton(user_sn).get_work_hours_for_month(message.text),
-                                    reply_markup=month_choose_kb.as_markup(),
-                                    parse_mode='HTML')
-        await state.update_data(whitch_kb_was='time_table_kb')
-        await support_function.delete_pre_message.del_pre_message(chat_id=msg1.chat.id,
-                                                                  message_id=msg1.message_id,
-                                                                  state=state)
+    await support_function.user_tracking.where_who(where=message.text,
+                                                   state=state)
+    if await support_function.login_test.log_test(message=message,
+                                                  state=state):
+        user_data = await state.get_data()
+        user_sn = user_data['user_second_name']
+        if user_sn == 'Василевский' or user_sn == 'Крусер':
+            user_sn = 'Быкова'
+        await message.delete()
+        if message.text == 'За все отработанное время':
+            msg = await message.answer(text='Идет загрузка...')
+            await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
+                                                                      message_id=msg.message_id,
+                                                                      state=state)
+            msg1 = await message.answer(text=BotButton(user_sn).get_all_work_hours(),
+                                        reply_markup=month_choose_kb.as_markup(),
+                                        parse_mode='HTML')
+            await state.update_data(whitch_kb_was='time_table_kb')
+            await support_function.delete_pre_message.del_pre_message(chat_id=msg1.chat.id,
+                                                                      message_id=msg1.message_id,
+                                                                      state=state)
+        else:
+            msg = await message.answer(text='Идет загрузка...')
+            await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
+                                                                      message_id=msg.message_id,
+                                                                      state=state)
+            msg1 = await message.answer(text=BotButton(user_sn).get_work_hours_for_month(message.text),
+                                        reply_markup=month_choose_kb.as_markup(),
+                                        parse_mode='HTML')
+            await state.update_data(whitch_kb_was='time_table_kb')
+            await support_function.delete_pre_message.del_pre_message(chat_id=msg1.chat.id,
+                                                                      message_id=msg1.message_id,
+                                                                      state=state)

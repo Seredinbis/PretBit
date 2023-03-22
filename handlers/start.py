@@ -46,17 +46,19 @@ async def start(message: Message, state: FSMContext) -> None:
 async def about_bot(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    msg = await message.answer(text='Бот проектируется для упрощения рабочего процесса Осветительской службы'
-                                    ' Михайловского театра!\nС помощью него можно узнать, какой сегодня, или в любой'
-                                    ' другой день, спектакль; Узнать каоке количество человек и кто именно работает в'
-                                    ' тот или иной день!; Запросить любую выписку и паспорт\nИ МНОГОЕ ДРУГОЕ\n\n'
-                                    'В данный момент бот находится в процессе написания, некоторые функции еще'
-                                    ' недоступны!\n\nКаждые 5 часов бот удаляет присланные вам файлы!',
-                               reply_markup=main_kb)
-    await message.delete()
-    await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
-                                                              message_id=msg.message_id,
-                                                              state=state)
+    if await support_function.login_test.log_test(message=message,
+                                                  state=state):
+        msg = await message.answer(text='Бот проектируется для упрощения рабочего процесса Осветительской службы'
+                                        ' Михайловского театра!\nС помощью него можно узнать, какой сегодня, или в любой'
+                                        ' другой день, спектакль; Узнать каоке количество человек и кто именно работает в'
+                                        ' тот или иной день!; Запросить любую выписку и паспорт\nИ МНОГОЕ ДРУГОЕ\n\n'
+                                        'В данный момент бот находится в процессе написания, некоторые функции еще'
+                                        ' недоступны!\n\nКаждые 5 часов бот удаляет присланные вам файлы!',
+                                   reply_markup=main_kb)
+        await message.delete()
+        await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
+                                                                  message_id=msg.message_id,
+                                                                  state=state)
 
 
 @router_start.message(Command(commands=["clear_state_"]))
