@@ -371,7 +371,6 @@ class WorkTest(LightPerson):
             day_ind = self.day_index
         data_for_calendar = self.ALL_values['values']
         data_work = self.sort_work_row()
-        who_str = ''
         who_list = []
         quest = self.get_col_quest(quests).split('\n')[1::]
         col_row = self.test_col_row_in_day(day_index=day_ind)
@@ -379,6 +378,7 @@ class WorkTest(LightPerson):
         equals_index = self.how_index_equals(quests, val_f_name)
         # тут бегаем по общему графику и выводим в who_list - кто сегодня работает,
         for index_plus in range(len(val_f_name)):
+            who_str = ''
             for ind in range(len(data_for_calendar)):
                 if len(data_for_calendar[ind]) >= day_ind + index_plus:
                     if len(data_for_calendar[ind][4]) > 3:
@@ -397,20 +397,20 @@ class WorkTest(LightPerson):
                                 # else:
                                 who_str += data_for_calendar[ind][4].split(' ')[0] + ', '
             who_list.append(who_str[:-2:])
-            who_str = ''
-            if val_f_name == quests:
-                result += f'{quest[index_plus]}\n<b>Количество работников на смене:</b>' \
-                          f' {who_list[index_plus].count(",") + 1}\n' \
-                          f'<b>Cостав смены:</b> {who_list[index_plus]}\n\n'
-            elif quests == data_work:
-                for index_pluss in range(len(data_work)):
-                    for index in equals_index:
-                        result += f'{quest[index_pluss]}\n<b>Количество работников на смене:</b>' \
-                                f'{who_list[index].count(",") + 1}\n' \
-                                f'<b>Cостав смены:</b> {who_list[index]}\n\n'
-                        equals_index.pop(0)
-                        break
-            return result
+        if val_f_name == quests:
+            for index_pluss in range(len(val_f_name)):
+                result += f'{quest[index_pluss]}\n<b>Количество работников на смене:</b>' \
+                          f' {who_list[index_pluss].count(",") + 1}\n' \
+                          f'<b>Cостав смены:</b> {who_list[index_pluss]}\n\n'
+        elif quests == data_work:
+            for index_pluss in range(len(data_work)):
+                for index in equals_index:
+                    result += f'{quest[index_pluss]}\n<b>Количество работников на смене:</b>' \
+                              f'{who_list[index].count(",") + 1}\n' \
+                              f'<b>Cостав смены:</b> {who_list[index]}\n\n'
+                    equals_index.pop(0)
+                    break
+        return result
 
     @staticmethod
     def get_col_quest(quests) -> str:
