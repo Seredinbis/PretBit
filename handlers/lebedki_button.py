@@ -5,6 +5,7 @@ from aiogram.filters import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.main import main_kb
+from keyboards.reply_inline.choose_show import choose_lebedki_kb
 
 
 router_lebedki = Router()
@@ -24,8 +25,8 @@ async def get_lebedki(message: Message, state: FSMContext) -> None:
                                        reply_markup=main_kb)
             await state.update_data(whitch_kb_was='main_kb')
         else:
-            msg = await message.answer(text='Данный раздел в процессе разработки',
-                                       reply_markup=main_kb)
+            msg = await message.answer(text='Пожалуйста выберите необходимы спектакль',
+                                       reply_markup=choose_lebedki_kb.as_markup())
             await state.update_data(whitch_kb_was='main_kb')
         await message.delete()
         await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,

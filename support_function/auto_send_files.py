@@ -15,11 +15,16 @@ async def prepare_send(user_name, condition, user_id) -> None:
         if condition == 'disable':
             break
         # сколько часов до нулей?
+        print('я в prepare_send')
         time_to_zero = 24 - datetime.datetime.now().time().hour
+        print('я сплю в prepare_send')
         if type(data[1]) == str:
+            print('я проснулся')
             # просыпаемся за 2 час до смены
             time = 2
+            print('сплю')
             await asyncio.sleep((int(data[1][:-2:]) - time) * 3600)
+            print('опять проснулся')
             # выводим СЕГОДНЯ
             await bot.send_message(chat_id=user_id,
                                    text=data[0])

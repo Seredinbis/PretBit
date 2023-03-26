@@ -96,9 +96,8 @@ class LightPerson:
                                            'Декабрь': 168,
                                            'За год': 1973}}
         self.family_index = self.search_name(self.sname)
-        self.day_index = self.index_row()
         self.col_row_in_day = self.test_col_row_in_day()
-        self.values_for_name = self.name_values(self.col_row_in_day, self.day_index, self.family_index)
+        self.values_for_name = self.name_values(self.col_row_in_day, self.index_row(), self.family_index)
         self.day_index_plus = None
         self.data = f'{datetime.datetime.now().day}' + '.' + f'{datetime.datetime.now().month}' + '.' + \
                     f'{datetime.datetime.now().year}'
@@ -194,7 +193,7 @@ class LightPerson:
         # return coll_row-2    - 1 потому что последний раз цикла лишний
         # print('test_col_row_in_day')
         if day_index is None:
-            day_index = self.day_index
+            day_index = self.index_row()
         coll_row = 0
         for coll_row in range(8):  # 8 потому что не бывает у нас больше 6 рядов в день, до 8 на всякий
             if self.ALL_values['values'][2][day_index + coll_row] != '' or \
@@ -219,7 +218,7 @@ class SickTest(LightPerson):
         # print('generate_table_col_index')
         # 25 ,erd
         if day_index is None:
-            day_index = self.day_index
+            day_index = self.index_row()
         list_column_word = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                             'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
                             'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -257,13 +256,14 @@ class SickTest(LightPerson):
         # Вывод диапозона дней больничного
         # print('sick_day_range')
         sick_day_plus = 0
+        day_index = self.index_row()
         while True:
             if self.sick_day_test(sick_day_plus):
                 sick_day_plus += 1
             else:
                 # +1 потому что в новом дне у нас сначало идет путсой ряд
                 last_day = self.create_values_for_name_one_row(col_row_in_day=sick_day_plus + 1,
-                                                               day_index=self.day_index)['День текущего месяца']
+                                                               day_index=day_index)['День текущего месяца']
                 return f'<b>У вас больничный по {last_day} число, включительно.</b>'
 
     def if_sick(self) -> str:
@@ -289,6 +289,7 @@ class NightWorkTest(LightPerson):
         # [::3]  чтобы осталась только целая часть
         # day_index + 2 - чтобы перепрыгнуть на 1 ряд следющего дня, тк +1 это пустота между днями
         # print('night_work_test')
+        day_index = self.index_row()
         self.day_index_plus = 0
         if 'Кол-во рабочих часов в смене' in self.values_for_name[-1]:
             if int(self.values_for_name[-1]['Время начала смены'][:-2:]) >= 21:
@@ -298,14 +299,14 @@ class NightWorkTest(LightPerson):
         # print(self.create_values_for_name_one_row(self.col_row_in_day,
         #                                              self.day_index + 2)['Время начала смены'][:-2:])
         elif self.create_values_for_name_one_row(self.col_row_in_day,
-                                                 self.day_index + 2)['Наименование смены'] == 'ВЫХОДНОЙ':
+                                                 day_index + 2)['Наименование смены'] == 'ВЫХОДНОЙ':
             return False
         elif self.create_values_for_name_one_row(self.col_row_in_day,
-                                                 self.day_index + 2)['Кол-во рабочих часов в смене'] != '':
+                                                 day_index + 2)['Кол-во рабочих часов в смене'] != '':
             if int(self.create_values_for_name_one_row(self.col_row_in_day,
-                                                       self.day_index + 2)['Время окончания смены'][:-2:]) < 12:
+                                                       day_index + 2)['Время окончания смены'][:-2:]) < 12:
                 if int(self.create_values_for_name_one_row(self.col_row_in_day,
-                                                           self.day_index + 2)['Время начала смены'][:-2:]) >= 0:
+                                                           day_index + 2)['Время начала смены'][:-2:]) >= 0:
                     self.day_index_plus = 2
                     return True
         else:
@@ -316,7 +317,7 @@ class NightWorkTest(LightPerson):
         # print('if_night')
         if self.night_work_test():
             work = self.create_values_for_name_one_row(self.col_row_in_day,
-                                                       self.day_index + self.day_index_plus)
+                                                       self.index_row() + self.day_index_plus)
             return f'<b>У Вас сегодня ночная смена!</b> ' \
                    f'{work["Наименование смены"]}.\n Cмена длится с {work}["Время начала смены"] до' \
                    f'{work}["Время окончания смены"].\n' \
@@ -368,7 +369,7 @@ class WorkTest(LightPerson):
         # val_f_name - тут используем для того, чтобы выбрать данные с дня - day_ind, это либо текущий, либо с календаря
         result = 'Квесты:\n'
         if day_ind is None:
-            day_ind = self.day_index
+            day_ind = self.index_row()
         data_for_calendar = self.ALL_values['values']
         data_work = self.sort_work_row()
         who_list = []
@@ -653,4 +654,5 @@ class ResultPrint(LightPerson):
 # e = BotButton('Середин')
 # print(e.for_calendar_button(15))
 # f = ResultPrint('Середин')
+# print(f.today_button())
 # print(f.list_of_employees())

@@ -3,10 +3,11 @@ from aiogram.utils.keyboard import ReplyKeyboardMarkup, KeyboardButton
 
 b1 = KeyboardButton(text='Опера')
 b2 = KeyboardButton(text='Балет')
-b3 = KeyboardButton(text='Назад')
+b3 = KeyboardButton(text='Мануалы')
+b4 = KeyboardButton(text='Назад')
 
 choose_jenre_kb = ReplyKeyboardMarkup(keyboard=[[b1, b2],
-                                                [b3]],
+                                                [b3, b4]],
                                       resize_keyboard=True)
 
 bu1 = KeyboardButton(text='Паспорт спектакля')

@@ -5,6 +5,7 @@ from aiogram.filters import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.statements import choose_jenre_kb, choose_what_need_kb
+from keyboards.reply_inline.choose_show import choose_manual_kb
 from keyboards.reply_markup.main import main_kb
 from keyboards.reply_inline.choose_show import choose_opera_kb, choose_balet_kb
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
@@ -21,7 +22,7 @@ async def get_statement(message: Message, state: FSMContext) -> None:
                                                    state=state)
     if await support_function.login_test.log_test(message=message,
                                                   state=state):
-        msg = await message.answer(text='Пожалуйста выберите жанр',
+        msg = await message.answer(text='Пожалуйста выберите интересующий вас пункт',
                                    reply_markup=choose_jenre_kb)
         await state.update_data(whitch_kb_was='main_kb')
         await message.delete()
@@ -49,6 +50,21 @@ async def choose_genre(message: Message, state: FSMContext) -> None:
             msg = await message.answer(text='Проблема в choose_genre')
         await state.update_data(genre=message.text)
         await state.update_data(whitch_kb_was='сhoose_jenre_kb')
+        await message.delete()
+        await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
+                                                                  message_id=msg.message_id,
+                                                                  state=state)
+
+
+@router_statement.message(Text('Мануалы'))
+async def choose_show_lebedki(message: Message, state: FSMContext) -> None:
+    await support_function.user_tracking.where_who(where=message.text,
+                                                   state=state)
+    if await support_function.login_test.log_test(message=message,
+                                                  state=state):
+        msg = await message.answer(text='Пожалуйста выберите интересующий вас прибор!',
+                                   reply_markup=choose_manual_kb.as_markup())
+        await state.update_data(whitch_kb_was='main_kb')
         await message.delete()
         await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                   message_id=msg.message_id,
@@ -98,6 +114,7 @@ async def choose_what_plus_kb(message: Message, state: FSMContext) -> None:
         await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                   message_id=msg.message_id,
                                                                   state=state)
+
 
 @router_statement.message(Text('Вернуться в главное меню'))
 async def choose_kb(message: Message, state: FSMContext) -> None:

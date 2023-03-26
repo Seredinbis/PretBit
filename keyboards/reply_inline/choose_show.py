@@ -1,4 +1,5 @@
-from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton, InlineKeyboardBuilder
+from disk_api.yandex_d import FromYandex
 
 bo1 = InlineKeyboardButton(text='Аида', callback_data='Аида')
 bo2 = InlineKeyboardButton(text='Волшебная флейта', callback_data='Волшебная флейта')
@@ -46,3 +47,25 @@ bb21 = InlineKeyboardButton(text='Вернуться в главное меню'
 choose_balet_kb = InlineKeyboardMarkup(inline_keyboard=[[bb1], [bb2], [bb3], [bb4], [bb5], [bb6], [bb7], [bb8], [bb9],
                                                         [bb10], [bb11], [bb12], [bb13], [bb14], [bb15], [bb16], [bb17],
                                                         [bb18], [bb19], [bb20], [bb21]])
+
+choose_lebedki_kb = InlineKeyboardBuilder()
+for show in FromYandex(genre='Лебедки',
+                       show=None,
+                       what=None).get_lebedki_show():
+    choose_lebedki_kb.row(InlineKeyboardButton(text=show['name'],
+                                               callback_data=f'ЛЕБЕДКИ {show["name"]}'))
+choose_lebedki_kb.row(InlineKeyboardButton(text='Назад',
+                                           callback_data='Назад к выбору жанра'))
+choose_lebedki_kb.row(InlineKeyboardButton(text='Вернуться в главное меню',
+                                           callback_data='Вернуться в главное меню'))
+
+choose_manual_kb = InlineKeyboardBuilder()
+for show in FromYandex(genre='Мануалы',
+                       show=None,
+                       what=None).get_manual_show():
+    choose_manual_kb.row(InlineKeyboardButton(text=show['name'],
+                                              callback_data=f'МАНУАЛ {show["name"]}'))
+choose_manual_kb.row(InlineKeyboardButton(text='Назад',
+                                          callback_data='Назад к выбору жанра'))
+choose_manual_kb.row(InlineKeyboardButton(text='Вернуться в главное меню',
+                                          callback_data='Вернуться в главное меню'))
