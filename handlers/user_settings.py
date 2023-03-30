@@ -1,13 +1,14 @@
 import support_function
+import asyncio
 
 from aiogram.filters import Text
 from aiogram.types import Message, KeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
 from keyboards.reply_inline.how_del_pre_message import how_del_pre_message_kb
+from keyboards.reply_inline.how_del_file import how_del_files_kb
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from keyboards.reply_markup.user_setting import user_settings_kb
-
 
 router_user_settings = Router()
 
@@ -30,6 +31,7 @@ async def get_settings(message: Message, state: FSMContext) -> None:
 
 @router_user_settings.message(Text('Сколько последних сообщений оставлять'))
 async def get_del_pre(message: Message, state: FSMContext) -> None:
+    user_data = await state.get_data()
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
     if await support_function.login_test.log_test(message=message,
@@ -38,10 +40,34 @@ async def get_del_pre(message: Message, state: FSMContext) -> None:
                                         ' в диалоговом окне',
                                    reply_markup=how_del_pre_message_kb.as_markup())
         await state.update_data(whitch_kb_was='main_kb')
+        # следующий кусок кода, удаляет инлайн клавиатуру, после получения коллбэка, i_can_del служит флагом для
+        # удаления сообщшения с клавиатурой
+        while 'i_can_del_mess' not in user_data or not user_data['i_can_del_mess']:
+            user_data = await state.get_data()
+            await asyncio.sleep(1)
+        if user_data['i_can_del_mess']:
+            await msg.delete()
         await message.delete()
-        await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
-                                                                  message_id=msg.message_id,
-                                                                  state=state)
+        await state.update_data(i_can_del_mess=False)
+
+
+@router_user_settings.message(Text('Через сколько часов удалять файлы'))
+async def get_del_files(message: Message, state: FSMContext) -> None:
+    user_data = await state.get_data()
+    await support_function.user_tracking.where_who(where=message.text,
+                                                   state=state)
+    if await support_function.login_test.log_test(message=message,
+                                                  state=state):
+        msg = await message.answer(text='Вы можете настроить через сколько часов вы бы хотели, чтобы файлы удалились!',
+                                   reply_markup=how_del_files_kb.as_markup())
+        await state.update_data(whitch_kb_was='main_kb')
+        while 'i_can_del_file' not in user_data or not user_data['i_can_del_file']:
+            user_data = await state.get_data()
+            await asyncio.sleep(1)
+        if user_data['i_can_del_file']:
+            await msg.delete()
+        await message.delete()
+        await state.update_data(i_can_del_file=False)
 
 
 @router_user_settings.message(Text('Автоматическая рассылка и оповещение'))

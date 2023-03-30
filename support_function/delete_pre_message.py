@@ -11,7 +11,6 @@ async def del_pre_message(chat_id, message_id, state) -> None:
         how_much_del_pre_message = user_data['how_del']
     else:
         how_much_del_pre_message = 2
-    print(len(message_id_dict[chat_id]), how_much_del_pre_message)
     if len(message_id_dict[chat_id]) >= int(how_much_del_pre_message):
         await bot.delete_message(chat_id=chat_id,
                                  message_id=message_id_dict[chat_id].pop(0))

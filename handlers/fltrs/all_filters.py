@@ -22,3 +22,6 @@ genre_show_f: dict = {'Опера': ('Аида', 'Волшебная флей�
 how_mutch_delete_fltr = ('1 DEL', '2 DEL', '3 DEL', '4 DEL', '5 DEL', '6 DEL', '7 DEL', '8 DEL', '9 DEL', '10 DEL',
                          '11 DEL', '12 DEL', '13 DEL', '14 DEL', '15 DEL', '16 DEL', '17 DEL', '18 DEL', '19DEL',
                          '20 DEL')
+
+how_mutch_delete_file_fltr = ('1 DELF', '2 DELF', '3 DELF', '4 DELF', '5 DELF', '6 DELF', '7 DELF', '8 DELF', '9 DELF',
+                              '10 DELF')
