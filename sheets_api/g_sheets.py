@@ -3,6 +3,7 @@ import httplib2
 import datetime
 import os
 import json
+import calendar
 
 from oauth2client.service_account import ServiceAccountCredentials
 from config_data.config import load_config
@@ -41,7 +42,7 @@ class LightPerson:
         self.ALL_diapozon = f'{self.get_correct_list_name()}!A1:FC{self.get_amount_rows()}'
         self.ALL_values = self.get_values(diapozon=self.ALL_diapozon)
         self.family_list = {'Глухов': 'Начальник смены',
-                            'Быкова': 'Начальник смены',
+                            'Великанова': 'Начальник смены',
                             'Касырев': 'Инженер',
                             'Середин': 'Инженер',
                             'Леонов': 'Инженер',
@@ -97,7 +98,9 @@ class LightPerson:
                                            'За год': 1973}}
         self.family_index = self.search_name(self.sname)
         self.col_row_in_day = self.test_col_row_in_day()
-        self.values_for_name = self.name_values(self.col_row_in_day, self.index_row(), self.family_index)
+        self.values_for_name = self.name_values(self.col_row_in_day,
+                                                self.index_row(day=datetime.datetime.now().day),
+                                                self.family_index)
         self.day_index_plus = None
         self.data = f'{datetime.datetime.now().day}' + '.' + f'{datetime.datetime.now().month}' + '.' + \
                     f'{datetime.datetime.now().year}'
@@ -162,6 +165,7 @@ class LightPerson:
         for dayy in self.ALL_values['values'][self.columns_name.index('День текущего месяца')]:
             k += 1
             if str(day) == dayy:
+                print(day)
                 return k - 1
 
     def create_values_for_name_one_row(self, col_row_in_day, day_index, f_index=None) -> dict:
@@ -293,9 +297,10 @@ class NightWorkTest(LightPerson):
         self.day_index_plus = 0
         if 'Кол-во рабочих часов в смене' in self.values_for_name[-1]:
             if int(self.values_for_name[-1]['Время начала смены'][:-2:]) >= 21:
-                if self.values_for_name[-1]['Кол-во рабочих часов в смене'] != '':
-                    self.day_index_plus = 0
-                    return True
+                if int(self.values_for_name[-1]['Время окончания'][:-2:]) == 0:
+                    if self.values_for_name[-1]['Кол-во рабочих часов в смене'] != '':
+                        self.day_index_plus = 0
+                        return True
         # print(self.create_values_for_name_one_row(self.col_row_in_day,
         #                                              self.day_index + 2)['Время начала смены'][:-2:])
         elif self.create_values_for_name_one_row(self.col_row_in_day,
@@ -331,7 +336,6 @@ class WorkTest(LightPerson):
         # выводит, что у нас сегодня, если в дне 1 ряд
         # если в дне больше рядов, чем 1
         # print('if_work')
-        #
         if len(self.sort_work_row()) != 0:
             work_time = self.get_work_time(self.sort_work_row())
         else:
@@ -595,11 +599,17 @@ class BotButton(WorkTest):
 
 class ResultPrint(LightPerson):
     def today_button(self) -> (tuple, str):
-        if SickTest(self.sname).if_sick() is not None:
+        date = datetime.datetime.now()
+        if calendar.monthrange(date.year, date.month)[1] == date.day:
+            for i in self.values_for_name:
+                return f'Это последний день месяца, к сожалению, данная функция работает неккоректно на последний день' \
+                       f'в месяце'
+        elif SickTest(self.sname).if_sick() is not None:
             return SickTest(self.sname).if_sick()
         elif NightWorkTest(self.sname).if_night() is not None:
             return NightWorkTest(self.sname).if_night()
         else:
+            print(WorkTest(self.sname).if_work())
             return WorkTest(self.sname).if_work()
 
     def list_of_employees(self) -> list:

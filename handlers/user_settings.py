@@ -95,7 +95,7 @@ async def get_auto(message: Message, state: FSMContext) -> None:
                                                        state=state)
         msg = await message.answer(text='Автоматическая рассылка! Пожалуйста включите, либо выключите рассылку!'
                                         'Оповещение будет приходить за 2 часа до начала смены. Присланные файлы'
-                                        ' удалятся через 10 часов, после оповещения.',
+                                        ' удалятся через 14 часов, после оповещения.',
                                    reply_markup=auto_send_kb.as_markup())
         await state.update_data(whitch_kb_was='user_settings_kb')
         await message.delete()
@@ -123,9 +123,9 @@ async def enable_auto(message: Message, state: FSMContext) -> None:
         await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                   message_id=msg.message_id,
                                                                   state=state)
-        await support_function.prepare_send(user_id=message.from_user.id,
-                                            user_name=user_data['user_second_name'],
-                                            condition=user_data['auto_send_file'])
+        await support_function.prepare_send(state=state,
+                                            user_id=message.from_user.id,
+                                            user_name=user_data['user_second_name'])
 
 
 @router_user_settings.message(Text('Выключить'))

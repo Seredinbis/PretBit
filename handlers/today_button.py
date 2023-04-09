@@ -27,7 +27,7 @@ async def get_today(message: Message, state: FSMContext):
             # возможно будет изменения в if_work и [0] не будет
             await message.delete()
             msg2 = await message.answer(text='Идет загрузка данных...')
-            msg1 = await message.answer(text=ResultPrint('Быкова').today_button()[0],
+            msg1 = await message.answer(text=ResultPrint('Великанова').today_button()[0],
                                         reply_markup=main_kb)
             await state.update_data(whitch_kb_was='main_kb')
             await msg2.delete()

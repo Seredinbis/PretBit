@@ -20,8 +20,12 @@ storage = RedisStorage(redis=aioredis.Redis())
 bot = Bot(token=bot_token, parse_mode='HTML')
 
 # Словарь, с привязкой к айди пользователя, для удаления предыдущих сообщений и файлов
+# для удаления сообщений
 message_id_dict = {}
+# для удаления файлов
 files_id_dict = {}
+# для удаления файлов после авто-сообщений
+for_delete = {}
 
 
 # Тут роутеры находят новый дом
