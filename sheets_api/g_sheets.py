@@ -297,7 +297,7 @@ class NightWorkTest(LightPerson):
         self.day_index_plus = 0
         if 'Кол-во рабочих часов в смене' in self.values_for_name[-1]:
             if int(self.values_for_name[-1]['Время начала смены'][:-2:]) >= 21:
-                if int(self.values_for_name[-1]['Время окончания'][:-2:]) == 0:
+                if int(self.values_for_name[-1]['Время окончания смены'][:-2:]) == 0:
                     if self.values_for_name[-1]['Кол-во рабочих часов в смене'] != '':
                         self.day_index_plus = 0
                         return True
@@ -601,9 +601,8 @@ class ResultPrint(LightPerson):
     def today_button(self) -> (tuple, str):
         date = datetime.datetime.now()
         if calendar.monthrange(date.year, date.month)[1] == date.day:
-            for i in self.values_for_name:
-                return f'Это последний день месяца, к сожалению, данная функция работает неккоректно на последний день' \
-                       f'в месяце'
+            return f'Это последний день месяца, к сожалению, данная функция работает неккоректно на последний день' \
+                   f'в месяце'
         elif SickTest(self.sname).if_sick() is not None:
             return SickTest(self.sname).if_sick()
         elif NightWorkTest(self.sname).if_night() is not None:
