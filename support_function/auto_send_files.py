@@ -67,7 +67,7 @@ async def auto_send(data, user_id) -> None:
                 files = FromYandex(genre='Опера',
                                    show=show,
                                    what='Паспорт спектакля').get_files()
-                if files is None:
+                if 'К сожалению, для' in files:
                     msg = await bot.send_message(chat_id=user_id,
                                                  text='К сожалению паспорт на этот спектакль отсутсвует,'
                                                       ' скоро это исправится!')
