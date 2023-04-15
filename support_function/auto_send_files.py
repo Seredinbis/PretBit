@@ -38,7 +38,7 @@ async def prepare_send(state, user_name, user_id) -> None:
             break
         if type(data[1]) == str:
         # просыпаемся за 2 час до смены
-            time = int(data[1]) - 2
+            time = int(data[1][:-2]) - 2
             await asyncio.sleep(await sleep_to_work(time))
             # выводим СЕГОДНЯ
             msg = await bot.send_message(chat_id=user_id,

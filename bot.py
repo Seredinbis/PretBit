@@ -8,6 +8,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from config_data.config import load_config
 
+
 # тут узнаем путь к файлу и получаем токен из него
 abspath = os.path.abspath('.env')
 config = load_config(abspath)
@@ -41,6 +42,7 @@ async def main() -> None:
     dp.include_router(handlers.router_callbacks)
     dp.include_router(handlers.router_time_table)
     dp.include_router(handlers.router_user_settings)
+    dp.include_router(handlers.router_error)
     # чтобы не ловил апдейт, когда выключен, пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

@@ -165,7 +165,6 @@ class LightPerson:
         for dayy in self.ALL_values['values'][self.columns_name.index('День текущего месяца')]:
             k += 1
             if str(day) == dayy:
-                print(day)
                 return k - 1
 
     def create_values_for_name_one_row(self, col_row_in_day, day_index, f_index=None) -> dict:
