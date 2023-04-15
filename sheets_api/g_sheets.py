@@ -542,14 +542,13 @@ class BotButton(WorkTest):
             norma_hour = self.industrial_calendar[datetime.datetime.now().year][month]
             return f"<b>Количество отработанных часов за {month}</b>: {your_hour}\n" \
                    f"<b>Норма часов за {month}</b>: {norma_hour}\n" \
-                   f"<b>Ваша {self.perenedo_rabotka_for_month(your_hour, norma_hour)}" \
-                   f" за {month}</b>: {your_hour - norma_hour}"
+                   f"<b>Ваша {self.perenedo_rabotka_for_month(your_hour, norma_hour, month)}"
 
     def get_all_work_hours(self) -> str:
         correct_or = []
         all_work_hourse = 0
         ostatok = 0
-        rabotka = 0
+        pere_nedo_rabotka = 0
         year = datetime.datetime.now().year
         for month_number in range(1, 13):
             list_name = self.get_correct_list_name(month_number)
@@ -560,17 +559,17 @@ class BotButton(WorkTest):
                 shet_chasov = all_values['values'][self.family_index + 4]
                 all_work_hourse += int(shet_chasov[-2][:-2:])
                 ostatok += int(shet_chasov[-2][-1])
-                rabotka += int(shet_chasov[-2][:-2:]) + int(shet_chasov[-2][-1]) - \
-                           self.industrial_calendar[year][self.month_choose[month_number]]
+                pere_nedo_rabotka += (int(shet_chasov[-2][:-2:]) + int(shet_chasov[-2][-1])) - \
+                               self.industrial_calendar[year][self.month_choose[month_number]]
         if self.correct_month_number_or(correct_or) is False:
             return f'ВОЗМОЖНО НЕККОРЕКТНО! ОТСУТСТВУЕТ КАКОЙ-ТО МЕСЯЦ'
         else:
-            return f'<b>Количество отработанных часов за {year} год</b>: {all_work_hourse + ostatok / 10}\n' \
+            return f'<b>Количество отработанных часов за {year} год</b>: {all_work_hourse + ostatok}\n' \
                    f'<b>Норма часов за {year} год</b>: {self.industrial_calendar[year]["За год"]}\n' \
                    f'Осталось отработать ' \
-                   f'{self.industrial_calendar[year]["За год"] - all_work_hourse + ostatok / 10} часа\n' \
+                   f'{self.industrial_calendar[year]["За год"] - (all_work_hourse + ostatok)} часа\n' \
                    f'За последние месяцы(к которым был составлен график) у вас ' \
-                   f'{self.perenedo_rabotka_all(rabotka)} в <b>{rabotka}</b> час(a)(ов)'
+                   f'{self.perenedo_rabotka_all(pere_nedo_rabotka)} в <b>{pere_nedo_rabotka}</b> час(a)(ов)'
 
     @staticmethod
     def correct_month_number_or(correct_or) -> int:
@@ -582,11 +581,11 @@ class BotButton(WorkTest):
             count += 1
 
     @staticmethod
-    def perenedo_rabotka_for_month(your_time, normal) -> str:
+    def perenedo_rabotka_for_month(your_time, normal, month) -> str:
         if your_time > normal:
-            return 'переработка'
+            return f'переработка за {month}</b>: {your_time - normal}'
         else:
-            return 'недоработка'
+            return f'недоработка за {month}</b>: {abs(normal - your_time)}'
 
     @staticmethod
     def perenedo_rabotka_all(your_time) -> str:
@@ -618,6 +617,7 @@ class ResultPrint(LightPerson):
             elif len(i[4]) > 4:
                 list_of_employess.append(i[4].split(' ')[0])
         return list_of_employess
+
 
 # a = LightPerson('Середин')
 # print(a.get_correct_list_name())
@@ -659,8 +659,9 @@ class ResultPrint(LightPerson):
 # print('ged')
 # print(d.ged())
 # print()
-# e = BotButton('Середин')
+# e = BotButton('Довгополый')
 # print(e.for_calendar_button(15))
+# print(e.get_all_work_hours())
 # f = ResultPrint('Середин')
 # print(f.today_button())
 # print(f.list_of_employees())
