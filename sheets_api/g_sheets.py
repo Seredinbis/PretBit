@@ -10,7 +10,8 @@ from config_data.config import load_config
 
 
 class LightPerson:
-    def __init__(self, sname):
+    def __init__(self, sname, now_day):
+        print('LightPerson')
         # тут авторизация в гугл шитс
         # s.name - фамилия человека, передается с обьектом
         # spreadsheet_info - вся инфа о гугл таблице spreadsheet_IDъ
@@ -36,6 +37,7 @@ class LightPerson:
         httpauth = credentials.authorize(httplib2.Http())
         self.service = apiclient.discovery.build('sheets', 'v4', http=httpauth)
         self.spreadsheet_info = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_ID).execute()
+        print('ЗАПРОС')
         self.data = f'{datetime.datetime.now().day}' + '.' + f'{datetime.datetime.now().month}' + '.' + \
                     f'{datetime.datetime.now().year}'
         self.current_list_name = self.get_correct_list_name()
@@ -96,19 +98,21 @@ class LightPerson:
                                            'Ноябрь': 167,
                                            'Декабрь': 168,
                                            'За год': 1973}}
+        print(now_day)
+        self.day_index = self.index_row(day=now_day)
+        if self.day_index is None:
+            self.day_index = self.index_row(day=datetime.datetime.now().day)
         self.family_index = self.search_name(self.sname)
         self.col_row_in_day = self.test_col_row_in_day()
         self.values_for_name = self.name_values(self.col_row_in_day,
-                                                self.index_row(day=datetime.datetime.now().day),
+                                                self.day_index,
                                                 self.family_index)
         self.day_index_plus = None
-        self.data = f'{datetime.datetime.now().day}' + '.' + f'{datetime.datetime.now().month}' + '.' + \
-                    f'{datetime.datetime.now().year}'
 
     def get_correct_list_name(self, month_number=datetime.datetime.now().month) -> str:
         # ищем имя листа текущего месяца, по месяцу и году(по умолчанию)
         # если явно указать moht number - ,будет искать по указанному месяцу
-        # print('correct_list_name_search')
+        print('get_correct_list_name')
         list_name = []
         for rs_i in range(len(self.spreadsheet_info['sheets'])):
             list_name.append(self.spreadsheet_info['sheets'][rs_i]['properties']['title'])
@@ -120,7 +124,7 @@ class LightPerson:
 
     def get_amount_rows(self, list_name=None) -> str:
         # Возвращает количество рядов в листе текущего месяца
-        # print('get_amount_rows')
+        print('get_amount_rows')
         if list_name is None:
             list_name = self.current_list_name
         else:
@@ -135,7 +139,7 @@ class LightPerson:
     def get_values(self, diapozon) -> dict:
         # Функция дает возможность получить масиив значений по диапозону(номерация ячеек в google sheets)
         # values в json формате
-        # print('get_values')
+        print('get_values')
         values = self.service.spreadsheets().values().get(spreadsheetId=self.spreadsheet_ID,
                                                           range=diapozon,
                                                           majorDimension='COLUMNS').execute()
@@ -147,7 +151,7 @@ class LightPerson:
         # if len(sn_in_all) > 0:  для того, чтобы избежать ошибки пустого списка в следующим if
         # A5:EV5 - шапка, там находятся фамилии! Ищет введеную фамилию в таблице и выводит его индекс
         # возвращает индекс фамилии
-        # print('search_name')
+        print('search_name')
         diapozon = f'{self.current_list_name}!A5:EV5'
         index_sn = 0
         for sn_in_all in self.get_values(diapozon)['values']:
@@ -160,7 +164,7 @@ class LightPerson:
     def index_row(self, day=datetime.datetime.now().day) -> int:
         # Возвращает индекс дня
         # return k - 1   -1 потому что индексы считаются с 0, а мы начинаем с 1 костыль ссаный
-        # print('index_row')
+        print('index_row')
         k = 0
         for dayy in self.ALL_values['values'][self.columns_name.index('День текущего месяца')]:
             k += 1
@@ -171,7 +175,7 @@ class LightPerson:
         # Возвращает словарь рабочего времени и инфлрмации о смене для конкретного имени
         # КОСТЫЛЬ   +4 и +5 в графике нее совпадает ячейка времени смены, с индексом имени
         # создает правильный словарь одного ряда
-        # print('get_values_for_name')
+        print('get_values_for_name')
         if f_index is None:
             f_index = self.family_index
         row_values = {}
@@ -190,17 +194,17 @@ class LightPerson:
                     break
         return row_values
 
-    def test_col_row_in_day(self, day_index=None, day_number=datetime.datetime.now().day) -> int:
+    def test_col_row_in_day(self, day_ind=None, day_number=datetime.datetime.now().day) -> int:
         # Проверка индекса дня на колв-во рядов
         # break Если в колонке чисел не пустота и не число текущего дня - прерываем цикл
         # return coll_row-2    - 1 потому что последний раз цикла лишний
-        # print('test_col_row_in_day')
-        if day_index is None:
-            day_index = self.index_row()
+        print('test_col_row_in_day')
+        if day_ind == None:
+            day_ind = self.day_index
         coll_row = 0
         for coll_row in range(8):  # 8 потому что не бывает у нас больше 6 рядов в день, до 8 на всякий
-            if self.ALL_values['values'][2][day_index + coll_row] != '' or \
-                    self.ALL_values['values'][0][day_index + coll_row] == str(day_number):
+            if self.ALL_values['values'][2][day_ind + coll_row] != '' or \
+                    self.ALL_values['values'][0][day_ind + coll_row] == str(day_number):
                 pass
             else:
                 break
@@ -208,7 +212,7 @@ class LightPerson:
 
     def name_values(self, col_row_in_day, day_index, f_index=None) -> [dict]:
         # Создаем список рядов в дне, тут все значения для введенной фамилии, в текущий день
-        # print('values_for_name')
+        print('name_values')
         vals_for_name = []
         for how_row_in_day in range(col_row_in_day + 1):
             vals_for_name.append(self.create_values_for_name_one_row(how_row_in_day, day_index, f_index))
@@ -216,12 +220,13 @@ class LightPerson:
 
 
 class SickTest(LightPerson):
+    print('SickTest')
     def generate_table_col_index(self, sick_day_plus=0, day_index=None) -> str:
         # Уравнение присваивания индекса колонки
-        # print('generate_table_col_index')
+        print('generate_table_col_index')
         # 25 ,erd
         if day_index is None:
-            day_index = self.index_row()
+            day_index = self.day_index
         list_column_word = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                             'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
                             'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -244,7 +249,9 @@ class SickTest(LightPerson):
 
     def sick_day_test(self, sick_day_plus=0, day_index=None) -> bool:
         # Проверка цвета ячейки на больничный
-        # print('sick_day_test')
+        print('sick_day_test')
+        if day_index is None:
+            day_index = self.day_index
         word_index_info = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_ID,
                                                           ranges=self.generate_table_col_index(sick_day_plus,
                                                                                                day_index),
@@ -257,9 +264,9 @@ class SickTest(LightPerson):
 
     def sick_day_range(self) -> str:
         # Вывод диапозона дней больничного
-        # print('sick_day_range')
+        print('sick_day_range')
         sick_day_plus = 0
-        day_index = self.index_row()
+        day_index = self.day_index
         while True:
             if self.sick_day_test(sick_day_plus):
                 sick_day_plus += 1
@@ -271,12 +278,12 @@ class SickTest(LightPerson):
 
     def if_sick(self) -> str:
         # если больничный - возвращает о нем инофрмацию
-        # print('if_sick')
+        print('if_sick')
         if self.sick_day_test():
             for work in self.values_for_name:
                 if work['Наименование смены'] != 'ВЫХОДНОЙ':
                     return f'{self.sick_day_range()} Пожалуйста, больше отдыхайте и выздоравливайте, ждем вас' \
-                           f' готовым войти в раблочий режим! Сегодня {self.data} рабочая смена!'
+                           f' готовым войти в рабочий режим! Сегодня {self.data} рабочая смена!'
                 elif work['Наименование смены'] == 'ВЫХОДНОЙ':
                     return f'{self.sick_day_range()} Пожалуйста, больше отдыхайте и выздоравливайте, ждем вас' \
                            f' готовым войти в раблочий режим! Сегодня у осветительской службы выходной!'
@@ -292,7 +299,7 @@ class NightWorkTest(LightPerson):
         # [::3]  чтобы осталась только целая часть
         # day_index + 2 - чтобы перепрыгнуть на 1 ряд следющего дня, тк +1 это пустота между днями
         # print('night_work_test')
-        day_index = self.index_row()
+        day_index = self.day_index
         self.day_index_plus = 0
         if 'Кол-во рабочих часов в смене' in self.values_for_name[-1]:
             if int(self.values_for_name[-1]['Время начала смены'][:-2:]) >= 21:
@@ -321,7 +328,7 @@ class NightWorkTest(LightPerson):
         # print('if_night')
         if self.night_work_test():
             work = self.create_values_for_name_one_row(self.col_row_in_day,
-                                                       self.index_row() + self.day_index_plus)
+                                                       self.day_index + self.day_index_plus)
             return f'<b>У Вас сегодня ночная смена!</b> ' \
                    f'{work["Наименование смены"]}.\n Cмена длится с {work}["Время начала смены"] до' \
                    f'{work}["Время окончания смены"].\n' \
@@ -372,12 +379,12 @@ class WorkTest(LightPerson):
         # val_f_name - тут используем для того, чтобы выбрать данные с дня - day_ind, это либо текущий, либо с календаря
         result = 'Квесты:\n'
         if day_ind is None:
-            day_ind = self.index_row()
+            day_ind = self.day_index
         data_for_calendar = self.ALL_values['values']
         data_work = self.sort_work_row()
         who_list = []
         quest = self.get_col_quest(quests).split('\n')[1::]
-        col_row = self.test_col_row_in_day(day_index=day_ind)
+        col_row = self.test_col_row_in_day(day_ind=day_ind)
         val_f_name = self.name_values(col_row, day_ind, self.family_index)
         equals_index = self.how_index_equals(quests, val_f_name)
         # тут бегаем по общему графику и выводим в who_list - кто сегодня работает,
@@ -497,8 +504,8 @@ class WorkTest(LightPerson):
 class BotButton(WorkTest):
     def for_calendar_button(self, day_number):
         # print('for_calendar_button')
-        ind = self.index_row(day_number)
-        col_r = self.test_col_row_in_day(day_index=ind, day_number=day_number)
+        ind = self.index_row(day=day_number)
+        col_r = self.test_col_row_in_day(day_ind=ind, day_number=day_number)
         fam_ind = self.search_name(self.sname)
         val = self.name_values(col_r, ind, fam_ind)
         return self.work_or_for_calendar(val, ind, day_number)
@@ -596,18 +603,24 @@ class BotButton(WorkTest):
 
 
 class ResultPrint(LightPerson):
+    print('ResultPrint')
     def today_button(self) -> (tuple, str):
+        print('today_button')
         date = datetime.datetime.now()
         if calendar.monthrange(date.year, date.month)[1] == date.day:
             return f'Это последний день месяца, к сожалению, данная функция работает неккоректно на последний день' \
                    f'в месяце'
-        elif SickTest(self.sname).if_sick() is not None:
-            return SickTest(self.sname).if_sick()
-        elif NightWorkTest(self.sname).if_night() is not None:
-            return NightWorkTest(self.sname).if_night()
+        elif SickTest(sname=self.sname,
+                      now_day=self.day_index).if_sick() is not None:
+            return SickTest(sname=self.sname,
+                            now_day=self.day_index).if_sick()
+        elif NightWorkTest(sname=self.sname,
+                           now_day=self.day_index).if_night() is not None:
+            return NightWorkTest(sname=self.sname,
+                                 now_day=self.day_index).if_night()
         else:
-            print(WorkTest(self.sname).if_work())
-            return WorkTest(self.sname).if_work()
+            return WorkTest(sname=self.sname,
+                            now_day=self.day_index).if_work()
 
     def list_of_employees(self) -> list:
         list_of_employess = []
@@ -633,7 +646,9 @@ class ResultPrint(LightPerson):
 # print(a.create_values_for_name_one_row(a.test_col_row_in_day(), a.index_row()))
 # print()
 # print(a.name_values(a.test_col_row_in_day(), a.index_row()))
-# b = SickTest('Глухов')
+# b = SickTest(sname='Буканов',
+#              now_day=datetime.datetime.now().day)
+# print(b.sick_day_test())
 # print(b.if_sick())
 # c =  NightWorkTest('Леонов')
 # print(c.if_night())
@@ -662,6 +677,8 @@ class ResultPrint(LightPerson):
 # e = BotButton('Довгополый')
 # print(e.for_calendar_button(15))
 # print(e.get_all_work_hours())
-# f = ResultPrint('Середин')
+# f = ResultPrint(sname='Середин',
+#                 now_day=datetime.datetime.now().day)
 # print(f.today_button())
 # print(f.list_of_employees())
+

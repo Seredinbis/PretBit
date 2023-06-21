@@ -5,7 +5,8 @@ from aiogram.filters import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.calendar import calendar_kb
-from sheets_api.g_sheets import BotButton
+from sheets_api.gs import GS
+
 from .fltrs import day_number
 
 
@@ -38,7 +39,7 @@ async def get_calendar(message: Message, state: FSMContext):
         await message.delete()
         await state.update_data(whitch_kb_was='calendar_kb')
         msg = await message.answer(text='Идет загрузка...')
-        msg1 = await message.answer(text=BotButton(user_sn).for_calendar_button(message.text),
+        msg1 = await message.answer(text=GS(family=user_sn, day=message.text).today_data_work()[0],
                                     reply_markup=calendar_kb.as_markup())
         await msg.delete()
         await support_function.delete_pre_message.del_pre_message(chat_id=msg1.chat.id,

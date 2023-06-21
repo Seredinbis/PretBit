@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.time_table import time_table_kb
 from keyboards.reply_markup.month_choose import month_choose_kb
 from .fltrs.all_filters import month
-from sheets_api.g_sheets import BotButton
+from sheets_api.gs import GS
 router_time_table = Router()
 
 
@@ -82,7 +82,7 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
             await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                       message_id=msg.message_id,
                                                                       state=state)
-            msg1 = await message.answer(text=BotButton(user_sn).get_all_work_hours(),
+            msg1 = await message.answer(text=GS(family=user_sn).work_hour_all(),
                                         reply_markup=month_choose_kb.as_markup(),
                                         parse_mode='HTML')
             await state.update_data(whitch_kb_was='time_table_kb')
@@ -94,7 +94,7 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
             await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                       message_id=msg.message_id,
                                                                       state=state)
-            msg1 = await message.answer(text=BotButton(user_sn).get_work_hours_for_month(message.text),
+            msg1 = await message.answer(text=GS(family=user_sn, month=message.text).work_hour_mounth(),
                                         reply_markup=month_choose_kb.as_markup(),
                                         parse_mode='HTML')
             await state.update_data(whitch_kb_was='time_table_kb')

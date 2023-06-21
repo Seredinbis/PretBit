@@ -4,7 +4,7 @@ from aiogram import Router
 from aiogram.filters import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from sheets_api.g_sheets import ResultPrint
+from sheets_api.gs import GS
 from keyboards.reply_markup.main import main_kb
 
 
@@ -27,7 +27,7 @@ async def get_today(message: Message, state: FSMContext):
             # возможно будет изменения в if_work и [0] не будет
             await message.delete()
             msg2 = await message.answer(text='Идет загрузка данных...')
-            msg1 = await message.answer(text=ResultPrint('Великанова').today_button()[0],
+            msg1 = await message.answer(text=GS(family='Великанова').today_data_work()[0],
                                         reply_markup=main_kb)
             await state.update_data(whitch_kb_was='main_kb')
             await msg2.delete()
@@ -37,7 +37,7 @@ async def get_today(message: Message, state: FSMContext):
         else:
             await message.delete()
             msg1 = await message.answer(text='Идет загрузка данных...')
-            msg = await message.answer(text=ResultPrint(user_sn).today_button()[0],
+            msg = await message.answer(text=GS(user_sn).today_data_work()[0],
                                        reply_markup=main_kb)
             await state.update_data(whitch_kb_was='main_kb')
             await msg1.delete()

@@ -2,6 +2,7 @@ import datetime
 import asyncio
 
 from sheets_api.g_sheets import WorkTest
+from sheets_api.gs import GS
 from handlers.fltrs.all_filters import genre_show_f
 from bot import bot, for_delete
 from disk_api.yandex_d import FromYandex
@@ -33,10 +34,12 @@ async def sleep_to_work(hour) -> int:
 async def prepare_send(state, user_name, user_id) -> None:
     data_state = await state.get_data()
     while True:
+        gs = GS(family=user_name)
         data = WorkTest(user_name).if_work()
+        data = gs.today_data_work()
         if data_state['auto_send_file'] == 'disable':
             break
-        if type(data[1]) == str:
+        if 'выходной' not in data:
         # просыпаемся за 2 час до смены
             time = int(data[1][:-2]) - 2
             await asyncio.sleep(await sleep_to_work(time))
@@ -88,7 +91,6 @@ async def auto_send(data, user_id) -> None:
                 files = FromYandex(genre='Балет',
                                    show=show,
                                    what='Паспорт спектакля').get_files()
-                print(files)
                 if 'К сожалению, для' in files:
                     msg = await bot.send_message(chat_id=user_id,
                                                  text='К сожалению паспорт на этот спектакль отсутсвует,'
