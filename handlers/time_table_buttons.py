@@ -68,6 +68,19 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
 
 @router_time_table.message(Text(month))
 async def time_table_menu(message: Message, state: FSMContext) -> None:
+    month_choose = ['',
+                    'Январь',
+                    'Февраль',
+                    'Март',
+                    'Апрель',
+                    'Май',
+                    'Июнь',
+                    'Июль',
+                    'Август',
+                    'Сентябрь',
+                    'Октябрь',
+                    'Ноябрь',
+                    'Декабрь']
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
     if await support_function.login_test.log_test(message=message,
@@ -94,7 +107,8 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
             await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                       message_id=msg.message_id,
                                                                       state=state)
-            msg1 = await message.answer(text=GS(family=user_sn, month=message.text).work_hour_mounth(),
+            msg1 = await message.answer(text=GS(family=user_sn,
+                                                month=month_choose.index(message.text)).work_hour_mounth(),
                                         reply_markup=month_choose_kb.as_markup(),
                                         parse_mode='HTML')
             await state.update_data(whitch_kb_was='time_table_kb')

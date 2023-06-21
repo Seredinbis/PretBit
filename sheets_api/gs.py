@@ -35,7 +35,7 @@ class GS:
         if month is None:
             self.month = datetime.datetime.now().month
         else:
-            self.month = month
+            self.month = int(month)
         self.get_correct_list_name = self.get_correct_list_namef()
         self.get_amount_rows = self.get_amount_rowsf()
         self.values_rows = self.values_rowsf()
@@ -160,6 +160,7 @@ class GS:
                 # счетчик n нужен для того, чтобы правильно отсеять другие пустые строки, т.к весь список в них, при
                 # поиске индекса выдает нулевой индекс
                 n = 1
+
                 for values in self.values_columns[day_index][index + n::]:
                     if values == '':
                         day_indices.append(index + n)
@@ -298,7 +299,7 @@ class GS:
                         # в today_data нет кол-ва рабочих часов, только информация о смене
                         if pos in data:
                             if pos == 'Кол-во рабочих часов в смене':
-                                out_comp += f'</b>Продолжительность смены:</b> {data[pos][q_ch]}.\n'
+                                out_comp += f'<b>Продолжительность смены:</b> {data[pos][q_ch]}.\n'
                                 w_hour = int(data[pos][q_ch].split(',')[0])
                     if 'Кол-во рабочих часов в смене' in data:
                         out_comp += f'Продолжительность обеда: {end - start - w_hour} час(а).\n\n'
@@ -323,9 +324,10 @@ class GS:
         # функция возвращает количесво отработанных часво в месяц + недорапботки и переработки
         month = self.get_correct_list_name
         for m in self.month_choose:
-            if m in month:
+            if m in month and m != '':
                 month = m
                 break
+        print(month)
         month_hours = float(self.family_values[self.columns_name.index('Кол-во рабочих часов в смене')]
                             [-2].replace(',', '.'))
         norma_hour = float(self.industrial_calendar[datetime.datetime.now().year][month])
@@ -338,19 +340,21 @@ class GS:
         # времени в месяц
         year = datetime.datetime.now().year
         total_hour = 0
+        total_norm_hour = 0
         for month in self.month_choose:
             corr_ln = self.get_correct_list_namef(month=self.month_choose.index(month))
             print(corr_ln)
-            if corr_ln is not None:
+            if corr_ln is not None and month != '':
                 val_col = self.values_columnsf(list_name=corr_ln)
                 fam_val = self.search_family_list(val_col=val_col)
                 total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
                             [-2].replace(',', '.'))
+                total_norm_hour += self.industrial_calendar[year][month]
         return f'<b>Количество отработанных часов за {year} год</b>: {total_hour}\n' \
                f'<b>Норма часов за {year} год</b>: {self.industrial_calendar[year]["За год"]}\n' \
                f' За последние месяцы(к которым был составлен график) у вас' \
-               f' {self.perenedo_rabotka_all(total_hour-self.industrial_calendar[year]["За год"])}' \
-               f' в <b>{abs(total_hour-self.industrial_calendar[year]["За год"])}</b> час(a)(ов)'
+               f' {self.perenedo_rabotka_all(total_hour-total_norm_hour)}' \
+               f' в <b>{abs(total_hour-total_norm_hour)}</b> час(a)(ов)'
 
     def list_of_employees(self):
         # функция для вывода всех фамилий в графике
@@ -364,5 +368,5 @@ class GS:
         return employees
 
 
-gs = GS(family='Середин')
-print(gs.today_data_work()[2])
+# gs = GS(family='Середин')
+# print(gs.today_data_work())

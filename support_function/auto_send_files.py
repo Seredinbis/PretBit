@@ -1,7 +1,6 @@
 import datetime
 import asyncio
 
-from sheets_api.g_sheets import WorkTest
 from sheets_api.gs import GS
 from handlers.fltrs.all_filters import genre_show_f
 from bot import bot, for_delete
@@ -35,7 +34,6 @@ async def prepare_send(state, user_name, user_id) -> None:
     data_state = await state.get_data()
     while True:
         gs = GS(family=user_name)
-        data = WorkTest(user_name).if_work()
         data = gs.today_data_work()
         if data_state['auto_send_file'] == 'disable':
             break
