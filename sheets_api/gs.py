@@ -261,7 +261,7 @@ class GS:
             date = f'{self.today}.{str(datetime.datetime.now().month)}.{datetime.datetime.now().year}'
         # для начала отсеим ночные смены
         if data['Наименование смены'] == ['ВЫХОДНОЙ']:
-            return f'<b>У Осветительской службы {date} ВЫХОДНОЙ</b>\n\n'
+            return f'У Осветительской службы {date} ВЫХОДНОЙ!', None, None
         elif len(data['День текущего месяца']) > 1:
             output = f'<b>У Вас {date} ночная смена!</b>\n\n'
         # отсеиваем, все, что после запятой у времени
@@ -370,5 +370,5 @@ class GS:
         return employees
 
 
-gs = GS(family='Середин', day=19)
-print(gs.today_data_work())
+# gs = GS(family='Середин', day=19)
+# print(gs.today_data_work())
