@@ -9,4 +9,4 @@ from .back_button import router_back
 from .callbacks import router_callbacks
 from .time_table_buttons import router_time_table
 from .user_settings import router_user_settings
-# from .errors import router_error
+from .errors import router_error

@@ -42,7 +42,7 @@ async def main() -> None:
     dp.include_router(handlers.router_callbacks)
     dp.include_router(handlers.router_time_table)
     dp.include_router(handlers.router_user_settings)
-    # dp.include_router(handlers.router_error)
+    dp.include_router(handlers.router_error)
     # чтобы не ловил апдейт, когда выключен, пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
