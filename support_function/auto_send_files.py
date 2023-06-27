@@ -40,9 +40,9 @@ async def prepare_send(state, user_name, user_id) -> None:
             break
         if 'выходной' not in data:
         # просыпаемся за 1 час до смены
-            time = int(data[1][:-2]) - 1
+            time = int(data[1][:-2]) - 2
             await asyncio.sleep(await sleep_to_work(hour=14,
-                                                    minute=32))
+                                                    minute=0))
             # выводим СЕГОДНЯ
             msg = await bot.send_message(chat_id=user_id,
                                          text=data[0])
