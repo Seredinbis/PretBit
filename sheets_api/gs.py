@@ -304,7 +304,7 @@ class GS:
                                 out_comp += f'<b>Продолжительность смены:</b> {data[pos][q_ch]}.\n'
                                 w_hour = int(data[pos][q_ch].split(',')[0])
                     if 'Кол-во рабочих часов в смене' in data:
-                        out_comp += f'Продолжительность обеда: {end - start - w_hour} час(а).\n\n'
+                        out_comp += f'Продолжительность обеда: {end - start - w_hour} час(а, ов).\n\n'
                     break
         return output + out_comp, work_hour_start, work_quests_list
 
@@ -349,9 +349,10 @@ class GS:
             if corr_ln is not None and month != '':
                 val_col = self.values_columnsf(list_name=corr_ln)
                 fam_val = self.search_family_list(val_col=val_col)
-                total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
-                            [-2].replace(',', '.'))
-                total_norm_hour += self.industrial_calendar[year][month]
+                if len(fam_val) > 3:
+                    total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                [-2].replace(',', '.'))
+                    total_norm_hour += self.industrial_calendar[year][month]
         return f'<b>Количество отработанных часов за {year} год</b>: {total_hour}\n' \
                f'<b>Норма часов за {year} год</b>: {self.industrial_calendar[year]["За год"]}\n' \
                f' За последние месяцы(к которым был составлен график) у вас' \
@@ -370,5 +371,6 @@ class GS:
         return employees
 
 
-# gs = GS(family='Середин', day=19)
-# print(gs.today_data_work())
+gs = GS(family='Мосеев')
+print(gs.today_data_work())
+print(gs.work_hour_all())

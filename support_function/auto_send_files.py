@@ -18,10 +18,11 @@ async def time_to_zero() -> int:
     return abs(int(time_to_zero))
 
 
-async def sleep_to_work(hour) -> int:
+async def sleep_to_work(hour, minute) -> int:
     # в этом блоке высчитываем сколько нам осталось спать до желаемого времени, в секундах
     now = datetime.datetime.now()
-    target_time = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+    target_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    print(target_time)
     if target_time < now:
         # Если желаемое время уже прошло сегодня, то добавляем один день к целевому времени.
         target_time += datetime.timedelta(days=1)
@@ -38,9 +39,10 @@ async def prepare_send(state, user_name, user_id) -> None:
         if data_state['auto_send_file'] == 'disable':
             break
         if 'выходной' not in data:
-        # просыпаемся за 2 час до смены
-            time = int(data[1][:-2]) - 2
-            await asyncio.sleep(await sleep_to_work(time))
+        # просыпаемся за 1 час до смены
+            time = int(data[1][:-2]) - 1
+            await asyncio.sleep(await sleep_to_work(hour=14,
+                                                    minute=32))
             # выводим СЕГОДНЯ
             msg = await bot.send_message(chat_id=user_id,
                                          text=data[0])
@@ -64,7 +66,7 @@ async def prepare_send(state, user_name, user_id) -> None:
 async def auto_send(data, user_id) -> None:
     for spec in data:
         for show in genre_show_f['Опера']:
-            if show in spec['Наименование смены'] and 'спектакл' in spec['Наименование смены'].lower():
+            if show in spec and 'спектакл' in spec.lower():
                 files = FromYandex(genre='Опера',
                                    show=show,
                                    what='Паспорт спектакля').get_files()
@@ -85,7 +87,7 @@ async def auto_send(data, user_id) -> None:
                         for_delete.update({user_id: [doc_send.message_id]})
                     await msg.delete()
         for show in genre_show_f['Балет']:
-            if show in spec['Наименование смены'] and 'спектакл' in spec['Наименование смены'].lower():
+            if show in spec and 'спектакл' in spec.lower():
                 files = FromYandex(genre='Балет',
                                    show=show,
                                    what='Паспорт спектакля').get_files()
