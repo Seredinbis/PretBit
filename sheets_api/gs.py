@@ -330,12 +330,15 @@ class GS:
                 month = m
                 break
         print(month)
-        month_hours = float(self.family_values[self.columns_name.index('Кол-во рабочих часов в смене')]
-                            [-2].replace(',', '.'))
-        norma_hour = float(self.industrial_calendar[datetime.datetime.now().year][month])
-        return f"<b>Количество отработанных часов за {month}</b>: {month_hours}\n" \
-               f"<b>Норма часов за {month}</b>: {norma_hour}\n" \
-               f"<b>Ваша {self.perenedo_rabotka_for_month(month_hours, norma_hour, month)}"
+        if len(self.family_values) > 3:
+            month_hours = float(self.family_values[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                [-2].replace(',', '.'))
+            norma_hour = float(self.industrial_calendar[datetime.datetime.now().year][month])
+            return f"<b>Количество отработанных часов за {month}</b>: {month_hours}\n" \
+                   f"<b>Норма часов за {month}</b>: {norma_hour}\n" \
+                   f"<b>Ваша {self.perenedo_rabotka_for_month(month_hours, norma_hour, month)}"
+        else:
+            return "Возможно вы еще не работали в этом месяце"
 
     def work_hour_all(self):
         # функция бегает по листам, с определенным именем и вытаскивает, с каждого листа, кол-во отработонного
