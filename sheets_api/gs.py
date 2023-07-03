@@ -374,6 +374,6 @@ class GS:
         return employees
 
 
-gs = GS(family='Мосеев')
-print(gs.today_data_work())
-print(gs.work_hour_all())
+# gs = GS(family='Мосеев')
+# print(gs.today_data_work())
+# print(gs.work_hour_all())
