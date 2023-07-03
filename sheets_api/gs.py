@@ -347,14 +347,20 @@ class GS:
         total_hour = 0
         total_norm_hour = 0
         for month in self.month_choose:
+            if month == '':
+                continue
             corr_ln = self.get_correct_list_namef(month=self.month_choose.index(month))
-            print(corr_ln)
             if corr_ln is not None and month != '':
                 val_col = self.values_columnsf(list_name=corr_ln)
                 fam_val = self.search_family_list(val_col=val_col)
                 if len(fam_val) > 3:
-                    total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
-                                [-2].replace(',', '.'))
+                    # было замечено, что сумма часов была в разном индексе
+                    if len(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')][-2]) > 2:
+                        total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                      [-2].replace(',', '.'))
+                    else:
+                        total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                      [-1].replace(',', '.'))
                     total_norm_hour += self.industrial_calendar[year][month]
         return f'<b>Количество отработанных часов за {year} год</b>: {total_hour}\n' \
                f'<b>Норма часов за {year} год</b>: {self.industrial_calendar[year]["За год"]}\n' \
@@ -374,6 +380,6 @@ class GS:
         return employees
 
 
-# gs = GS(family='Мосеев')
+# gs = GS()
 # print(gs.today_data_work())
 # print(gs.work_hour_all())
