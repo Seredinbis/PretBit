@@ -20,8 +20,8 @@ async def er(er1: ErrorEvent, state: FSMContext) -> None:
 @router_error.message(Text('Ошибки'))
 async def get_lebedki(message: Message, state: FSMContext) -> None:
     text = ''.join(user_track)
-    if len(text) > 4000:
-        text = text[-4000:]
+    if len(text) > 2000:
+        text = text[-2000::]
     msg = await message.answer(text=text,
                                reply_markup=main_kb)
     await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
