@@ -1,5 +1,5 @@
 import datetime
-
+import logging
 import apiclient
 import httplib2
 import os
@@ -8,22 +8,32 @@ import json
 from oauth2client.service_account import ServiceAccountCredentials
 from config_data.config import load_config
 
+# в этом фауле установливаем логер в дебаг, чтобы явно отслеживать процесс
+logger_gs = logging.getLogger(__name__)
+logger_gs.setLevel(logging.DEBUG)
+hadler_gs = logging.FileHandler(f'{__name__}.log', mode='w')
+formater_gs = logging.Formatter('%(name)s %(asctime)s %(levelname)s %(message)s')
+hadler_gs.setFormatter(formater_gs)
+logger_gs.addHandler(hadler_gs)
 
 class GS:
     def __init__(self, day=None, month=None, family=None):
-        print('init')
-        # тут узнаем путь к файлу и получаем токен из него
-        abspath = os.path.abspath('.env')
-        config = load_config(abspath)
-        json_token: dict = config.google_sheets_api.token
-        google_sheets_token = json.loads(json_token)
-        self.spreadsheet_ID = '1iw2mz3md74UeCIMy3eXnfBH-E2-rhwBkWosxwVZVJxM'
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(google_sheets_token,
-                                                                       ["https://www.googleapis.com/auth/spreadsheets",
-                                                                        "https://www.googleapis.com/auth/drive"])
-        httpauth = credentials.authorize(httplib2.Http())
-        self.service = apiclient.discovery.build('sheets', 'v4', http=httpauth)
-        self.spreadsheet_info = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_ID).execute()
+        try:
+            logger_gs.info(f'Подключаемся к google sheets! {__name__}' )
+            # тут узнаем путь к файлу и получаем токен из него
+            abspath = os.path.abspath('.env')
+            config = load_config(abspath)
+            json_token: dict = config.google_sheets_api.token
+            google_sheets_token = json.loads(json_token)
+            self.spreadsheet_ID = '1iw2mz3md74UeCIMy3eXnfBH-E2-rhwBkWosxwVZVJxM'
+            credentials = ServiceAccountCredentials.from_json_keyfile_dict(google_sheets_token,
+                                                                           ["https://www.googleapis.com/auth/spreadsheets",
+                                                                            "https://www.googleapis.com/auth/drive"])
+            httpauth = credentials.authorize(httplib2.Http())
+            self.service = apiclient.discovery.build('sheets', 'v4', http=httpauth)
+            self.spreadsheet_info = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_ID).execute()
+        except Exception as ex:
+            logging.error(ex, exc_info=True)
         if day is None:
             self.today = str(datetime.datetime.now().day)
         else:
@@ -33,7 +43,10 @@ class GS:
         else:
             self.family = family
         if month is None:
-            self.month = datetime.datetime.now().month
+            if datetime.datetime.now().month == 8:
+                self.month = 7
+            else:
+                self.month = datetime.datetime.now().month
         else:
             self.month = int(month)
         self.get_correct_list_name = self.get_correct_list_namef()
@@ -128,26 +141,29 @@ class GS:
         print('Ошибка! Нет совпадений!')
 
     def search_family_list(self, val_col=None):
-        print('search_family_list')
-        if val_col is None:
-            val_col = self.values_columns
-        family_lists = []
-        flag = False
-        # функция возвращает список с часами конкретной фамилии записанной в self.family
-        for in_list in val_col:
-            if in_list == val_col[0] or \
-                    in_list == val_col[1] or \
-                    in_list == val_col[2]:
-                family_lists.append(in_list)
-            for item in in_list:
-                if self.family in item:
-                    flag = True
+        try:
+            logger_gs.info(f'Достаем данные для конкретной фамилии из таблиц, с помощью search_family_list! {__name__}')
+            if val_col is None:
+                val_col = self.values_columns
+            family_lists = []
+            flag = False
+            # функция возвращает список с часами конкретной фамилии записанной в self.family
+            for in_list in val_col:
+                if in_list == val_col[0] or \
+                        in_list == val_col[1] or \
+                        in_list == val_col[2]:
+                    family_lists.append(in_list)
+                for item in in_list:
+                    if self.family in item:
+                        flag = True
+                        break
+                if in_list != [] and flag:
+                    family_lists.append(in_list)
+                elif in_list == [] and flag:
                     break
-            if in_list != [] and flag:
-                family_lists.append(in_list)
-            elif in_list == [] and flag:
-                break
-        return family_lists
+            return family_lists
+        except Exception as ex:
+            logger_gs.error(ex, exc_info=True)
 
     def search_day_indices(self):
         print('search_day_indices')
@@ -246,8 +262,6 @@ class GS:
         # если там не вышло - значит нет часов - значит выходной
         return self.correct_output(self.today_data())
 
-
-
     def correct_output(self, data):
         print('correct_output')
         # будем составлять строку, с окончательным выводом данных для бота, переводя словарь в строку
@@ -323,50 +337,60 @@ class GS:
             return 'недоработка'
 
     def work_hour_mounth(self):
-        # функция возвращает количесво отработанных часво в месяц + недорапботки и переработки
-        month = self.get_correct_list_name
-        for m in self.month_choose:
-            if m in month and m != '':
-                month = m
-                break
-        print(month)
-        if len(self.family_values) > 3:
-            month_hours = float(self.family_values[self.columns_name.index('Кол-во рабочих часов в смене')]
-                                [-2].replace(',', '.'))
-            norma_hour = float(self.industrial_calendar[datetime.datetime.now().year][month])
-            return f"<b>Количество отработанных часов за {month}</b>: {month_hours}\n" \
-                   f"<b>Норма часов за {month}</b>: {norma_hour}\n" \
-                   f"<b>Ваша {self.perenedo_rabotka_for_month(month_hours, norma_hour, month)}"
-        else:
-            return "Возможно вы еще не работали в этом месяце"
+        try:
+            logger_gs.info(f'Подсчет кол-во часов в конкретном месяце, work_hour_m..! {__name__}')
+            # функция возвращает количесво отработанных часво в месяц + недорапботки и переработки
+            month = self.get_correct_list_name
+            for m in self.month_choose:
+                if m in month and m != '':
+                    month = m
+                    break
+            if month == 'Август':
+                return 'К сожалению, посчитать кол-во отработанных часов в этом месяце невозможно!'
+            if len(self.family_values) > 3:
+                month_hours = float(self.family_values[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                    [-2].replace(',', '.'))
+                norma_hour = float(self.industrial_calendar[datetime.datetime.now().year][month])
+                return f"<b>Количество отработанных часов за {month}</b>: {month_hours}\n" \
+                       f"<b>Норма часов за {month}</b>: {norma_hour}\n" \
+                       f"<b>Ваша {self.perenedo_rabotka_for_month(month_hours, norma_hour, month)}"
+            else:
+                return "Возможно вы еще не работали в этом месяце"
+        except Exception as ex:
+            logger_gs.error(ex, exc_info=True)
 
     def work_hour_all(self):
         # функция бегает по листам, с определенным именем и вытаскивает, с каждого листа, кол-во отработонного
         # времени в месяц
-        year = datetime.datetime.now().year
-        total_hour = 0
-        total_norm_hour = 0
-        for month in self.month_choose:
-            if month == '':
-                continue
-            corr_ln = self.get_correct_list_namef(month=self.month_choose.index(month))
-            if corr_ln is not None and month != '':
-                val_col = self.values_columnsf(list_name=corr_ln)
-                fam_val = self.search_family_list(val_col=val_col)
-                if len(fam_val) > 3:
-                    # было замечено, что сумма часов была в разном индексе
-                    if len(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')][-2]) > 2:
-                        total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
-                                      [-2].replace(',', '.'))
-                    else:
-                        total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
-                                      [-1].replace(',', '.'))
-                    total_norm_hour += self.industrial_calendar[year][month]
-        return f'<b>Количество отработанных часов за {year} год</b>: {total_hour}\n' \
-               f'<b>Норма часов за {year} год</b>: {self.industrial_calendar[year]["За год"]}\n' \
-               f' За последние месяцы(к которым был составлен график) у вас' \
-               f' {self.perenedo_rabotka_all(total_hour-total_norm_hour)}' \
-               f' в <b>{abs(total_hour-total_norm_hour)}</b> час(a)(ов)'
+        try:
+            logger_gs.info(f'Считаем кол-во часов за все время! {__name__}')
+            year = datetime.datetime.now().year
+            total_hour = 0
+            total_norm_hour = 0
+            for month in self.month_choose:
+                if month == '' or month == 'Август':
+                    continue
+                corr_ln = self.get_correct_list_namef(month=self.month_choose.index(month))
+                if corr_ln is not None and month != '':
+                    val_col = self.values_columnsf(list_name=corr_ln)
+                    fam_val = self.search_family_list(val_col=val_col)
+                    if len(fam_val) > 3:
+                        # было замечено, что сумма часов была в разном индексе
+                        if len(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')][-2]) > 2:
+                            total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                          [-2].replace(',', '.'))
+                        else:
+                            total_hour += float(fam_val[self.columns_name.index('Кол-во рабочих часов в смене')]
+                                          [-1].replace(',', '.'))
+                        total_norm_hour += self.industrial_calendar[year][month]
+            return f'<b>Количество отработанных часов за {year} год</b>: {total_hour}\n' \
+                   f'<b>Норма часов за {year} год</b>: {self.industrial_calendar[year]["За год"]}\n' \
+                   f' За последние месяцы(к которым был составлен график) у вас' \
+                   f' {self.perenedo_rabotka_all(total_hour-total_norm_hour)}' \
+                   f' в <b>{abs(total_hour-total_norm_hour)}</b> час(a)(ов)\n' \
+                   f'ЧАСЫ АВГУСТА НЕ УЧИТЫВАЮТСЯ'
+        except Exception as ex:
+            logger_gs.error(ex, exc_info=True)
 
     def list_of_employees(self):
         # функция для вывода всех фамилий в графике
@@ -379,7 +403,11 @@ class GS:
                     employees.append(data[4].split(' ')[0])
         return employees
 
+    def create_personal_table(self):
+        pass
 
-# gs = GS()
-# print(gs.today_data_work())
+
+
+# gs = GS(family='Середин')
+# print(gs.get_correct_list_namef())
 # print(gs.work_hour_all())

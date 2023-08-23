@@ -8,11 +8,23 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from config_data.config import load_config
 
-
 # тут узнаем путь к файлу и получаем токен из него
 abspath = os.path.abspath('.env')
 config = load_config(abspath)
 bot_token = config.tg_bot.token
+
+# получение пользовательского логгера и установка уровня логирования
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# настройка обработчика и форматировщика
+handler = logging.FileHandler(f"{__name__}.log", mode='w')
+formatter = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
+
+# добавление форматировщика к обработчику
+handler.setFormatter(formatter)
+# добавление обработчика к логгеру
+logger.addHandler(handler)
 
 # Инициализируем хранилище (создаем экземпляр класса RedisStorage)
 storage = RedisStorage(redis=aioredis.Redis())
@@ -52,5 +64,8 @@ async def main() -> None:
 
 if __name__ == "__main__":
     # Запуск бота
-    logging.basicConfig(level=logging.INFO)
-    asyncio.run(main())
+    try:
+        logger.info(f"Запуск бота! {__name__}")
+        asyncio.run(main())
+    except Exception as ex:
+        logger.error(f'Ошибка запуска бота {ex}', exc_info=True)
