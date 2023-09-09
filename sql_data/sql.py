@@ -16,7 +16,6 @@ class Employee(Base):
     middle_name = Column(String(40), nullable=True)
     last_name = Column(String(40), nullable=False)
     birthday = Column(DateTime(), nullable=True)
-    position_id = Column(Integer(), ForeignKey('positions.id'), nullable=False)
 
 
 class Position(Base):

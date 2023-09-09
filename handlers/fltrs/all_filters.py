@@ -25,3 +25,7 @@ how_mutch_delete_fltr = ('1 DEL', '2 DEL', '3 DEL', '4 DEL', '5 DEL', '6 DEL', '
 
 how_mutch_delete_file_fltr = ('1 DELF', '2 DELF', '3 DELF', '4 DELF', '5 DELF', '6 DELF', '7 DELF', '8 DELF', '9 DELF',
                               '10 DELF')
+
+
+work_position = ('Начальник осветительской службы', 'Начальник смены', 'Ведущий инженер', 'Инженер', 'Техник',
+                 'Осветитель', 'Светооператор')

@@ -10,40 +10,12 @@ from keyboards.reply_markup.main import main_kb
 from keyboards.reply_inline.choose_show import choose_manual_kb
 from keyboards.reply_markup.user_setting import user_settings_kb
 from .fltrs.all_filters import genre_show_f
-from other_data import working_positions
 from .fltrs.all_filters import csn, how_mutch_delete_fltr, how_mutch_delete_file_fltr
 from disk_api.yandex_d import Manual, Chain
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 router_callbacks = Router()
 
-
-# фильтр на содержание даты в тюпле фамилий
-@router_callbacks.callback_query(lambda call: call.data in csn)
-async def set_user_second_name(callback: CallbackQuery, state: FSMContext) -> None:
-    user_data = await state.get_data()
-    await state.update_data(login=True)
-    if 'user_seecond_name' in user_data:
-        await callback.answer(text=f'Вы уже выбрали {user_data["user_second_name"]}',
-                              show_alert=True)
-    else:
-        if callback.data in ('Василевский', 'Круссер'):
-            await state.update_data(user_second_name='Быкова')
-            await callback.answer(text=f'Вы выбралию {callback.data}\nК сожалению вас нет в графике, вы будете'
-                                       f' пользоваться ботом под фамилией Быкова',
-                                  show_alert=True)
-        else:
-            await callback.answer(text=f'Вы выбралию {callback.data}\nВыбор соответсвующей фамилии напрямую зависит на'
-                                       f' корректную работу бота!',
-                                  show_alert=True)
-            await state.update_data(user_second_name=callback.data)
-        await state.update_data(user_working_position=working_positions[callback.data])
-        msg = await bot.send_message(chat_id=callback.from_user.id,
-                                     text='Открываю главное меню!',
-                                     reply_markup=main_kb)
-        await support_function.delete_pre_message.del_pre_message(chat_id=callback.from_user.id,
-                                                                  message_id=msg.message_id,
-                                                                  state=state)
 
 
 @router_callbacks.callback_query(lambda call: call.data in how_mutch_delete_fltr)
