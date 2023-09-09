@@ -6,7 +6,6 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.calendar import calendar_kb
 from sheets_api.gs import GS
-
 from .fltrs import day_number
 
 

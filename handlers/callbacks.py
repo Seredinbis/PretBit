@@ -12,7 +12,7 @@ from keyboards.reply_markup.user_setting import user_settings_kb
 from .fltrs.all_filters import genre_show_f
 from other_data import working_positions
 from .fltrs.all_filters import csn, how_mutch_delete_fltr, how_mutch_delete_file_fltr
-from disk_api.yandex_d import FromYandex
+from disk_api.yandex_d import Manual, Chain
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 router_callbacks = Router()
@@ -73,9 +73,7 @@ async def how_mutch_del_files(callback: CallbackQuery, state: FSMContext) -> Non
 
 @router_callbacks.callback_query(lambda call: call.data.startswith('ЛЕБЕДКИ '))
 async def get_lebed(callback: CallbackQuery, state: FSMContext) -> None:
-    files_list = FromYandex(genre='Лебедки',
-                            show=callback.data[8::],
-                            what=None).get_lebedki_file()
+    files_list = Chain(show=callback.data[8::]).get_files()
     document = URLInputFile(url=files_list[1],
                             filename=files_list[0])
     send = await bot.send_document(chat_id=callback.from_user.id,
@@ -89,9 +87,7 @@ async def get_lebed(callback: CallbackQuery, state: FSMContext) -> None:
 async def get_manuall(callback: CallbackQuery, state: FSMContext) -> None:
     if callback.data.startswith('МАНУАЛ '):
         dict_for_call_send = {}
-        files_dict = FromYandex(genre='Мануалы',
-                                show=callback.data[7::],
-                                what=None).get_manual_file()
+        files_dict = Manual().get_manual_file()
         # cоставляем инлайн клавиатуру из полученного словаря
         choose_manual_file_kb = InlineKeyboardBuilder()
         counter = 0
