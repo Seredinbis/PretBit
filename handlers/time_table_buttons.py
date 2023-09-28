@@ -8,6 +8,9 @@ from keyboards.reply_markup.time_table import time_table_kb
 from keyboards.reply_markup.month_choose import month_choose_kb
 from .fltrs.all_filters import month
 from sheets_api.gs_pandas import LightPerson
+from sql_data.sql import session, Employee
+
+
 router_time_table = Router()
 
 
@@ -55,8 +58,7 @@ async def get_personal_time_table(message: Message, state: FSMContext) -> None:
 async def time_table_menu(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Выберите  интересующий вас пункт!',
                                    reply_markup=month_choose_kb.as_markup())
         await state.update_data(whitch_kb_was='time_table_kb')
@@ -83,10 +85,9 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
                     'Декабрь']
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
-        user_data = await state.get_data()
-        user_sn = user_data['user_second_name']
+    if await support_function.login_test.log_test(message=message):
+        with session as ses:
+            user_sn = ses.query(Employee.last_name).filter(Employee.id == message.from_user.id).scalar()
         if user_sn == 'Василевский' or user_sn == 'Крусер':
             user_sn = 'Быкова'
         await message.delete()

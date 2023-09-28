@@ -1,5 +1,6 @@
 import support_function
 import asyncio
+import os
 
 from aiogram.filters import Text
 from aiogram.types import Message
@@ -11,8 +12,14 @@ from keyboards.reply_markup.user_setting import user_settings_kb
 from keyboards.reply_markup.main import main_kb
 from sql_data.sql import session
 from sqlalchemy import text as rawreq
+from config_data.config import load_config
+
 
 router_user_settings = Router()
+
+__abspath = os.path.abspath('.env')
+__config = load_config(__abspath)
+dev_id: int = __config.dev_id.token
 
 
 # обработка кнопки в главном меню
@@ -20,8 +27,7 @@ router_user_settings = Router()
 async def get_settings(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Меню пользовательских настроек!',
                                    reply_markup=user_settings_kb)
         await state.update_data(whitch_kb_was='main_kb')
@@ -36,8 +42,7 @@ async def get_del_pre(message: Message, state: FSMContext) -> None:
     user_data = await state.get_data()
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Вы можете настроить количество сообщений, которые будут постоянное оставаться'
                                         ' в диалоговом окне',
                                    reply_markup=how_del_pre_message_kb.as_markup())
@@ -58,8 +63,7 @@ async def get_del_files(message: Message, state: FSMContext) -> None:
     user_data = await state.get_data()
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Вы можете настроить через сколько часов вы бы хотели, чтобы файлы удалились!',
                                    reply_markup=how_del_files_kb.as_markup())
         await state.update_data(whitch_kb_was='main_kb')
@@ -74,11 +78,10 @@ async def get_del_files(message: Message, state: FSMContext) -> None:
 
 @router_user_settings.message(Text(startswith='Запрос:'))
 async def get_request(message: Message, state: FSMContext) -> None:
-    if message.from_user.id == 327169698:
+    if message.from_user.id == dev_id:
         await support_function.user_tracking.where_who(where=message.text,
                                                        state=state)
-        if await support_function.login_test.log_test(message=message,
-                                                      state=state):
+        if await support_function.login_test.log_test(message=message):
             request = message.text.split(':')[1]
             try:
                 with session as s:

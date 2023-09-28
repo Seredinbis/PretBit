@@ -19,8 +19,7 @@ async def back(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
     user_data = await state.get_data()
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         keyboard = user_data['whitch_kb_was']
         if keyboard == 'сhoose_jenre_kb':
             msg = await message.answer(text='Пожалуйста выберите жанр',

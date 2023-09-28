@@ -46,8 +46,7 @@ async def start(message: Message, state: FSMContext) -> None:
 async def about_bot(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Бот проектируется для упрощения рабочего процесса Осветительской службы'
                                         ' Михайловского театра!\nС помощью него можно узнать, какой сегодня, или в любой'
                                         ' другой день, спектакль; Узнать каоке количество человек и кто именно работает в'

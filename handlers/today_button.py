@@ -16,8 +16,7 @@ router_today = Router()
 async def get_today(message: Message, state: FSMContext):
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         with session as ses:
             user_sn = ses.query(Employee.last_name).filter(Employee.id == message.from_user.id).scalar()
         if user_sn in ('Василевский', 'Крусcер'):

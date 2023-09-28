@@ -20,8 +20,7 @@ router_statement = Router()
 async def get_statement(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Пожалуйста выберите интересующий вас пункт',
                                    reply_markup=choose_jenre_kb)
         await state.update_data(whitch_kb_was='main_kb')
@@ -36,8 +35,7 @@ async def get_statement(message: Message, state: FSMContext) -> None:
 async def choose_genre(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         if message.text == 'Опера':
             msg = await message.answer(text='Пожалуйста выберите интересующий вас спектакль!',
                                        reply_markup=choose_opera_kb)
@@ -60,8 +58,7 @@ async def choose_genre(message: Message, state: FSMContext) -> None:
 async def choose_show_lebedki(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Пожалуйста выберите интересующий вас прибор!',
                                    reply_markup=choose_manual_kb.as_markup())
         await state.update_data(whitch_kb_was='main_kb')
@@ -76,8 +73,7 @@ async def choose_show_lebedki(message: Message, state: FSMContext) -> None:
 async def choose_what_plus_kb(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         await state.update_data(whitch_kb_was='сhoose_what_need_kb')
         await state.update_data(what=message.text)
         user_data = await state.get_data()
@@ -120,8 +116,7 @@ async def choose_what_plus_kb(message: Message, state: FSMContext) -> None:
 async def choose_kb(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='Открываю главное меню!',
                                    reply_markup=main_kb)
         await message.delete()

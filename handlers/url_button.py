@@ -14,8 +14,7 @@ router_url = Router()
 async def get_url(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         msg = await message.answer(text='[Михайловский театр](https://mikhailovsky.ru/)'
                                         '\n[lee](https://leefilters.com/lighting/colour-effect-lighting-filters/)'
                                         '\n[rosco](https://us.rosco.com/en/products/family/filters-and-diffusions)'

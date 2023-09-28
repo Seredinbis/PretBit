@@ -5,18 +5,25 @@ from environs import Env
 @dataclass()
 class TgBot:
     token: str       # токен для телеграмм бота
-    pass
 
 
 @dataclass()
 class YaDisc:
     token: str      # токен для яндекс диска
-    pass
 
 
 @dataclass()
 class GooSheets:
     token: dict     # токен для гугл шиитс
+
+@dataclass()
+class DVid:
+    token: int      # id разраба
+
+
+@dataclass()
+class SqlUrl:
+    token: str     # урл базы данных
 
 
 #  этот датакласс не будет использоваться, лежит тут просто для примера
@@ -33,6 +40,8 @@ class Config:
     tg_bot: TgBot
     yandex_api: YaDisc
     google_sheets_api: GooSheets
+    dev_id: DVid
+    sql_url: SqlUrl
 
 
 def load_config(path) -> Config:
@@ -42,4 +51,6 @@ def load_config(path) -> Config:
 
     return Config(tg_bot=TgBot(token=env('BOT_TOKEN')),
                   yandex_api=YaDisc(token=env('YANDEX_TOKEN')),
-                  google_sheets_api=GooSheets(token=env('GOOGLE_SHEETS_TOKEN')))
+                  google_sheets_api=GooSheets(token=env('GOOGLE_SHEETS_TOKEN')),
+                  dev_id=DVid(token=env('DEV_ID')),
+                  sql_url=SqlUrl(token=env('SQL_URL')))

@@ -1,7 +1,14 @@
+import os
+
 from sqlalchemy import create_engine, Integer, String, Column, DateTime, ForeignKey, MetaData
 from sqlalchemy.orm import Session, declarative_base
+from config_data.config import load_config
 
-engine = create_engine('postgresql+psycopg2://antonseredin:1108@localhost/theatre', future=True)
+__abspath = os.path.abspath('.env')
+__config = load_config(__abspath)
+sql_url: str = __config.sql_url.token
+
+engine = create_engine(sql_url, future=True)
 engine.connect()
 session = Session(bind=engine)
 

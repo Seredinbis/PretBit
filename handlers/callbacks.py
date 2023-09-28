@@ -22,8 +22,9 @@ router_callbacks = Router()
 
 @router_callbacks.callback_query(lambda call: call.data in work_position or call.data in csn)
 async def set_user_second_name(callback: CallbackQuery, state: FSMContext) -> None:
-    user_data = await state.get_data()
     if callback.data in work_position:
+        with session as ses:
+            user_ln = ses.query(Employee.last_name).filter(Employee.id == callback.from_user.id)
         a_to_table = Position(name=callback.data,
                               employees_id=callback.from_user.id)
         with session as s:
@@ -36,12 +37,10 @@ async def set_user_second_name(callback: CallbackQuery, state: FSMContext) -> No
         await support_function.delete_pre_message.del_pre_message(chat_id=callback.from_user.id,
                                                                   message_id=msg.message_id,
                                                                   state=state)
-        await support_function.prepare_send(state=state,
-                                            user_id=callback.from_user.id,
-                                            user_name=user_data['user_second_name'])
-    elif 'user_second_name' not in user_data:
+        await support_function.prepare_send(user_id=callback.from_user.id,
+                                            user_name=user_ln)
+    elif support_function.login_test.log_test(callback):
         if callback.data in ('Василевский', 'Круссер'):
-            await state.update_data(user_second_name=None)
             await callback.answer(text=f'Вы выбрали {callback.data}\nК сожалению вас нет в графике,'
                                        f' часть функций будет недоступна',
                                   show_alert=True)
@@ -65,7 +64,6 @@ async def set_user_second_name(callback: CallbackQuery, state: FSMContext) -> No
             with session as s:
                 s.add(a_to_table)
                 s.commit()
-            await state.update_data(user_second_name=callback.data)
             msg = await bot.send_message(chat_id=callback.from_user.id,
                                          text='Пожалуйста выберите свою должность!',
                                          reply_markup=choose_work_pos.as_markup())
