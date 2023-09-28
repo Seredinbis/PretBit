@@ -1,21 +1,29 @@
-from sqlalchemy import create_engine, Integer, String, Column, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, Integer, String, Column, DateTime, ForeignKey, MetaData
+from sqlalchemy.orm import Session, declarative_base
 
-engine = create_engine('postgresql+psycopg2://antonseredin:1111@localhost/theatre', echo=True, future=True)
+engine = create_engine('postgresql+psycopg2://antonseredin:1108@localhost/theatre', future=True)
 engine.connect()
 session = Session(bind=engine)
 
 Base = declarative_base()
-
+meta_data = MetaData()
 
 class Employee(Base):
     __tablename__ = 'employees'
     id = Column(Integer(), primary_key=True)
+    last_name = Column(String(40), nullable=False)
     first_name = Column(String(40), nullable=True)
     middle_name = Column(String(40), nullable=True)
-    last_name = Column(String(40), nullable=False)
     birthday = Column(DateTime(), nullable=True)
+
+
+class WorkTime(Base):
+    __tablename__ = 'worktime'
+    id = Column(Integer(), primary_key=True, autoincrement=True)
+    month_id = Column(Integer(), nullable=True)
+    month = Column(String(10), nullable=False)
+    time = Column(String(10), nullable=True)
+    employee_id = Column(Integer(), ForeignKey('employees.id'))
 
 
 class Position(Base):
@@ -32,6 +40,3 @@ class Perfomance(Base):
     genre = Column(String(10), nullable=False)
     date = Column(DateTime(), nullable=True)
     employees_id = Column(Integer(), ForeignKey('employees.id'))
-
-# создание таблиц
-# Base.metadata.create_all(engine)

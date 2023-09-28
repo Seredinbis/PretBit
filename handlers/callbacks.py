@@ -10,12 +10,68 @@ from keyboards.reply_markup.main import main_kb
 from keyboards.reply_inline.choose_show import choose_manual_kb
 from keyboards.reply_markup.user_setting import user_settings_kb
 from .fltrs.all_filters import genre_show_f
-from .fltrs.all_filters import csn, how_mutch_delete_fltr, how_mutch_delete_file_fltr
+from .fltrs.all_filters import how_mutch_delete_fltr, how_mutch_delete_file_fltr, csn
 from disk_api.yandex_d import Manual, Chain
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
+from .fltrs.all_filters import work_position
+from keyboards.reply_inline.choose_position import choose_work_pos
+from sql_data.sql import session, Employee, Position
 
 router_callbacks = Router()
 
+
+@router_callbacks.callback_query(lambda call: call.data in work_position or call.data in csn)
+async def set_user_second_name(callback: CallbackQuery, state: FSMContext) -> None:
+    user_data = await state.get_data()
+    if callback.data in work_position:
+        a_to_table = Position(name=callback.data,
+                              employees_id=callback.from_user.id)
+        with session as s:
+            s.add(a_to_table)
+            s.commit()
+        await state.update_data(login=True)
+        msg = await bot.send_message(chat_id=callback.from_user.id,
+                                     text='Открываю главное меню!',
+                                     reply_markup=main_kb)
+        await support_function.delete_pre_message.del_pre_message(chat_id=callback.from_user.id,
+                                                                  message_id=msg.message_id,
+                                                                  state=state)
+        await support_function.prepare_send(state=state,
+                                            user_id=callback.from_user.id,
+                                            user_name=user_data['user_second_name'])
+    elif 'user_second_name' not in user_data:
+        if callback.data in ('Василевский', 'Круссер'):
+            await state.update_data(user_second_name=None)
+            await callback.answer(text=f'Вы выбрали {callback.data}\nК сожалению вас нет в графике,'
+                                       f' часть функций будет недоступна',
+                                  show_alert=True)
+            a_to_table = Employee(id=callback.from_user.id,
+                                  last_name=callback.data)
+            with session as s:
+                s.add(a_to_table)
+                s.commit()
+            msg = await bot.send_message(chat_id=callback.from_user.id,
+                                         text='Пожалуйста выберите свою должность!',
+                                         reply_markup=choose_work_pos.as_markup())
+            await support_function.delete_pre_message.del_pre_message(chat_id=callback.from_user.id,
+                                                                      message_id=msg.message_id,
+                                                                      state=state)
+        else:
+            await callback.answer(text=f'Вы выбрали {callback.data}\nВыбор соответсвующей фамилии напрямую зависит на'
+                                       f' корректную работу бота!',
+                                  show_alert=True)
+            a_to_table = Employee(id=callback.from_user.id,
+                                  last_name=callback.data)
+            with session as s:
+                s.add(a_to_table)
+                s.commit()
+            await state.update_data(user_second_name=callback.data)
+            msg = await bot.send_message(chat_id=callback.from_user.id,
+                                         text='Пожалуйста выберите свою должность!',
+                                         reply_markup=choose_work_pos.as_markup())
+            await support_function.delete_pre_message.del_pre_message(chat_id=callback.from_user.id,
+                                                                      message_id=msg.message_id,
+                                                                      state=state)
 
 
 @router_callbacks.callback_query(lambda call: call.data in how_mutch_delete_fltr)
@@ -45,7 +101,7 @@ async def how_mutch_del_files(callback: CallbackQuery, state: FSMContext) -> Non
 
 @router_callbacks.callback_query(lambda call: call.data.startswith('ЛЕБЕДКИ '))
 async def get_lebed(callback: CallbackQuery, state: FSMContext) -> None:
-    files_list = Chain(show=callback.data[8::]).get_files()
+    files_list = Chain(show=callback.data[8::]).get_files()[0]
     document = URLInputFile(url=files_list[1],
                             filename=files_list[0])
     send = await bot.send_document(chat_id=callback.from_user.id,
@@ -58,8 +114,9 @@ async def get_lebed(callback: CallbackQuery, state: FSMContext) -> None:
 @router_callbacks.callback_query(lambda call: call.data.startswith('МАНУАЛ '))
 async def get_manuall(callback: CallbackQuery, state: FSMContext) -> None:
     if callback.data.startswith('МАНУАЛ '):
+        device = callback.data[7::]
         dict_for_call_send = {}
-        files_dict = Manual().get_manual_file()
+        files_dict = Manual(device).get_file()
         # cоставляем инлайн клавиатуру из полученного словаря
         choose_manual_file_kb = InlineKeyboardBuilder()
         counter = 0

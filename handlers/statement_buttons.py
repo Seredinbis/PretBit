@@ -9,7 +9,7 @@ from keyboards.reply_inline.choose_show import choose_manual_kb
 from keyboards.reply_markup.main import main_kb
 from keyboards.reply_inline.choose_show import choose_opera_kb, choose_balet_kb
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
-from disk_api.yandex_d import FromYandex
+from disk_api.yandex_d import Passport
 
 
 router_statement = Router()
@@ -81,7 +81,7 @@ async def choose_what_plus_kb(message: Message, state: FSMContext) -> None:
         await state.update_data(whitch_kb_was='сhoose_what_need_kb')
         await state.update_data(what=message.text)
         user_data = await state.get_data()
-        files_dict = FromYandex(user_data['genre'], user_data['show'], user_data['what']).get_files()
+        files_dict = Passport(user_data['genre'], user_data['show']).get_files()
         # начинаем строить клавиатуру если что-то вернулось
         if type(files_dict) == str:
             msg = await message.answer(text=files_dict,

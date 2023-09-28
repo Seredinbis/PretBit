@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.time_table import time_table_kb
 from keyboards.reply_markup.month_choose import month_choose_kb
 from .fltrs.all_filters import month
-from sheets_api.gs import GS
+from sheets_api.gs_pandas import LightPerson
 router_time_table = Router()
 
 
@@ -95,7 +95,12 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
             await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                       message_id=msg.message_id,
                                                                       state=state)
-            msg1 = await message.answer(text=GS(family=user_sn).work_hour_all(),
+            all_time = LightPerson(last_name=user_sn).get_all_time()
+            if all_time[0] is None:
+                add = ''
+            add = all_time[0]
+            msg1 = await message.answer(text=f'Количество отработанного времени за утченные месяцы составляет'
+                                             f' <b>{all_time[1]}</b>!\n' + add,
                                         reply_markup=month_choose_kb.as_markup(),
                                         parse_mode='HTML')
             await state.update_data(whitch_kb_was='time_table_kb')
@@ -107,8 +112,8 @@ async def time_table_menu(message: Message, state: FSMContext) -> None:
             await support_function.delete_pre_message.del_pre_message(chat_id=msg.chat.id,
                                                                       message_id=msg.message_id,
                                                                       state=state)
-            msg1 = await message.answer(text=GS(family=user_sn,
-                                                month=month_choose.index(message.text)).work_hour_mounth(),
+            msg1 = await message.answer(text=LightPerson(last_name=user_sn,
+                                                         month=month_choose.index(message.text)).get_month_time(),
                                         reply_markup=month_choose_kb.as_markup(),
                                         parse_mode='HTML')
             await state.update_data(whitch_kb_was='time_table_kb')

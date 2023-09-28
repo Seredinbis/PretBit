@@ -1,15 +1,13 @@
-from .delete_pre_message import del_pre_message
+
+from sql_data.sql import session, Employee
 
 
-async def log_test(message, state) -> bool:
-    user_data = await state.get_data()
-    if 'user_second_name' not in user_data:
-        alarm_message = await message.answer(text='Пожалуйста пройдите регистрацию нажав /start')
-        await message.delete()
-        await del_pre_message(chat_id=alarm_message.chat.id,
-                              message_id=alarm_message.message_id,
-                              state=state)
+async def log_test(message, state=None):
+    with session as ses:
+        login = ses.query(Employee.id).filter(Employee.id == message.from_user.id).scalar()
+    if login is None:
         return False
     else:
         return True
+
 

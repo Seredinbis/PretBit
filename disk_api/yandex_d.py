@@ -30,7 +30,7 @@ class AuthYandex:
 
 
 class Chain(AuthYandex):
-    def __init__(self, show):
+    def __init__(self, show=None):
         self.show = show
         self.__yan = super().get_token()
 
@@ -38,6 +38,13 @@ class Chain(AuthYandex):
         try:
             logger.info('Запрос на файлы лебедок')
             return [(file['name'], file['file']) for file in list(self.__yan.listdir(f'disk:/Лебедки/{self.show}'))]
+        except ConnectionError as ex:
+            logger.exception(f'Ошибка {ex}')
+
+    def get_folders(self) -> list:
+        try:
+            logger.info(f'Запрос списка файлов лебедок')
+            return [folder for folder in list(self.__yan.listdir(f'disk:/Лебедки'))]
         except ConnectionError as ex:
             logger.exception(f'Ошибка {ex}')
 
@@ -72,14 +79,14 @@ class Manual(AuthYandex):
         self.__yan = super().get_token()
         self.__files_url = {}
 
-    def get_manual_folders(self) -> list:
+    def get_folders(self) -> list:
         try:
             logger.info(f'Запрос списка мануалов')
             return [folder for folder in list(self.__yan.listdir(f'disk:/Мануалы'))]
         except ConnectionError as ex:
             logger.exception(f'Ошибка {ex}')
 
-    def get_manual_file(self) -> dict:
+    def get_file(self) -> dict:
         try:
             logger.info(f'Запрос на мануал {self.device}')
             return {files['name']: files['file'] for files in list(self.__yan.listdir(f'disk:/Мануалы/{self.device}'))}
