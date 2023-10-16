@@ -6,7 +6,10 @@ import os
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
+
+import support_function
 from config_data.config import load_config
+from sql_data.sql import session, Employee
 
 # тут узнаем путь к файлу и получаем токен из него
 abspath = os.path.abspath('.env')
@@ -59,6 +62,7 @@ async def main() -> None:
     dp.include_router(handlers.router_error)
     # чтобы не ловил апдейт, когда выключен, пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
+    await support_function.reuse_auto_send()
     await dp.start_polling(bot)
 
 
@@ -67,5 +71,6 @@ if __name__ == "__main__":
     try:
         logger.info(f"Запуск бота! {__name__}")
         asyncio.run(main())
+
     except Exception as ex:
         logger.error(f'Ошибка запуска бота {ex}', exc_info=True)

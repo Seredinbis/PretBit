@@ -2,10 +2,9 @@ import os
 import logging
 
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
 from aiogram import Router
 from aiogram.filters import Text
-from aiogram.types import InputFile
+from aiogram.types import FSInputFile
 
 router_error = Router()
 
@@ -35,12 +34,13 @@ def get_log_files():
 
 
 @router_error.message(Text('Ошибки'))
-async def get_errors(message: Message, state: FSMContext) -> None:
+async def get_errors(message: Message) -> None:
     login_er.debug('поймали хэндлер ОШИБКИ, пробуем отправку файлов')
     try:
         error_files = get_log_files()
         for file in error_files:
-            doc = InputFile(file)
-            await message.reply_document(doc, 'rb')
+            doc = FSInputFile(file)
+            await message.answer_document(doc)
+            login_er.debug(f'файл {doc} отправлен')
     except Exception:
         login_er.exception(f'ошибка отправки файлов')

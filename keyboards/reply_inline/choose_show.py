@@ -1,5 +1,5 @@
 from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton, InlineKeyboardBuilder
-from disk_api.yandex_d import FromYandex
+from disk_api.yandex_d import Chain, Manual
 
 bo1 = InlineKeyboardButton(text='Аида', callback_data='Аида')
 bo2 = InlineKeyboardButton(text='Волшебная флейта', callback_data='Волшебная флейта')
@@ -49,9 +49,7 @@ choose_balet_kb = InlineKeyboardMarkup(inline_keyboard=[[bb1], [bb2], [bb3], [bb
                                                         [bb18], [bb19], [bb20], [bb21]])
 
 choose_lebedki_kb = InlineKeyboardBuilder()
-for show in FromYandex(genre='Лебедки',
-                       show=None,
-                       what=None).get_lebedki_show():
+for show in Chain().get_folders():
     choose_lebedki_kb.row(InlineKeyboardButton(text=show['name'],
                                                callback_data=f'ЛЕБЕДКИ {show["name"]}'))
 choose_lebedki_kb.row(InlineKeyboardButton(text='Назад',
@@ -60,9 +58,7 @@ choose_lebedki_kb.row(InlineKeyboardButton(text='Вернуться в глав�
                                            callback_data='Вернуться в главное меню'))
 
 choose_manual_kb = InlineKeyboardBuilder()
-for show in FromYandex(genre='Мануалы',
-                       show=None,
-                       what=None).get_manual_show():
+for show in Manual().get_folders():
     choose_manual_kb.row(InlineKeyboardButton(text=show['name'],
                                               callback_data=f'МАНУАЛ {show["name"]}'))
 choose_manual_kb.row(InlineKeyboardButton(text='Назад',

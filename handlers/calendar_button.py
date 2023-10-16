@@ -5,8 +5,8 @@ from aiogram.filters import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from keyboards.reply_markup.calendar import calendar_kb
-from sheets_api.gs import GS
-
+from sql_data.sql import session, Employee
+from sheets_api.gs_pandas import LightPerson
 from .fltrs import day_number
 
 
@@ -15,8 +15,7 @@ router_calendar = Router()
 
 @router_calendar.message(Text('Календарь'))
 async def get_calendar(message: Message, state: FSMContext):
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
+    if await support_function.login_test.log_test(message=message):
         await support_function.user_tracking.where_who(where=message.text,
                                                        state=state)
         msg = await message.answer(text='Выберите пожалуйста желаемую дату текущего месяца',
@@ -30,16 +29,15 @@ async def get_calendar(message: Message, state: FSMContext):
 
 @router_calendar.message(Text(day_number))
 async def get_calendar(message: Message, state: FSMContext):
-    if await support_function.login_test.log_test(message=message,
-                                                  state=state):
-        user_data = await state.get_data()
-        user_sn = user_data['user_second_name']
+    if await support_function.login_test.log_test(message=message):
+        with session as ses:
+            user_sn = ses.query(Employee.last_name).filter(Employee.id == message.from_user.id).scalar()
         await support_function.user_tracking.where_who(where=message.text,
                                                        state=state)
         await message.delete()
         await state.update_data(whitch_kb_was='calendar_kb')
         msg = await message.answer(text='Идет загрузка...')
-        msg1 = await message.answer(text=GS(family=user_sn, day=message.text).today_data_work()[0],
+        msg1 = await message.answer(text=LightPerson(last_name=user_sn, day=message.text).get_message(),
                                     reply_markup=calendar_kb.as_markup())
         await msg.delete()
         await support_function.delete_pre_message.del_pre_message(chat_id=msg1.chat.id,

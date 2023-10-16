@@ -1,73 +1,94 @@
 import yadisk
 import os
+import logging
 
 from config_data.config import load_config
 
+# получение пользовательского логгера и установка уровня логирования
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+# настройка обработчика и форматировщика
+handler = logging.FileHandler(f"{__name__}.log", mode='w')
+formatter = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
+# добавление форматировщика к обработчику
+handler.setFormatter(formatter)
+# добавление обработчика к логгеру
+logger.addHandler(handler)
 
-class FromYandex:
-    def __init__(self, genre, show, what):
-        # genre - жанр спектакля, Опера, либо Балет
-        # show - название спектакля
-        # what - что требуется: выписки, либо паспорта
-        # check - флаг для выбора условия, если имя спекталкя совпадает с именем папки
-        # clientID, client_secret, Redirect_URL, Y_token - данные выданные Yandex, для связи с RestApi
 
-        # тут узнаем путь к файлу и получаем токен из него
-        abspath = os.path.abspath('.env')
-        config = load_config(abspath)
-        yandex_token = config.yandex_api.token
+class AuthYandex:
+    # тут узнаем путь к файлу и получаем токен из него
+    __abspath = os.path.abspath('.env')
+    __config = load_config(__abspath)
+    __yandex_token = __config.yandex_api.token
+    __Y_Token = __yandex_token
+    __yan = yadisk.YaDisk(token=__Y_Token)
 
+    @classmethod
+    def get_token(cls):
+        return cls.__yan
+
+
+class Chain(AuthYandex):
+    def __init__(self, show=None):
         self.show = show
-        self.what = what
+        self.__yan = super().get_token()
+
+    def get_files(self):
+        try:
+            logger.info('Запрос на файлы лебедок')
+            return [(file['name'], file['file']) for file in list(self.__yan.listdir(f'disk:/Лебедки/{self.show}'))]
+        except ConnectionError as ex:
+            logger.exception(f'Ошибка {ex}')
+
+    def get_folders(self) -> list:
+        try:
+            logger.info(f'Запрос списка файлов лебедок')
+            return [folder for folder in list(self.__yan.listdir(f'disk:/Лебедки'))]
+        except ConnectionError as ex:
+            logger.exception(f'Ошибка {ex}')
+
+
+class Passport(AuthYandex):
+    def __init__(self, genre, show):
         self.genre = genre
-        self.clientID = '36a304f0b73340149d3d713adc45dac4'
-        self.client_secret = 'bc0679779d5a49d584b5b9cc957b9271'
-        self.Redirect_URL = 'yandexta://disk.yandex.ru'
-        self.Y_Token = yandex_token
-        self.yan = yadisk.YaDisk(token=self.Y_Token)
-        self.check = False
-        self.file_dict: dict = {}
+        self.show = show
+        self.__yan = super().get_token()
+        self.__files_url = {}
 
-    def get_files(self) -> [dict, str]:
-        # тут бегаем по папкам и ищем нужный файл
-        for folder in list(self.yan.listdir(f'disk:/{self.genre}/{self.what}')):
-            if folder['name'].lower() in self.show.lower():
-                self.check = True
-                for i in list(self.yan.listdir(f'disk:/{self.genre}/{self.what}/{folder["name"]}')):
-                    self.file_dict.update({i['name']: i['file']})
-                return self.file_dict
-        if not self.check:
-            return f'К сожалению, для {self.show} нет {self.what}, в скором времени это исправится!' \
-                   f' Попробуйте выбрать другой файл!'
+    def get_files(self):
+        try:
+            logger.info(f'Запрос на паспорт {self.show}')
+            # тут бегаем по папкам и ищем нужный файл
+            path = list(self.__yan.listdir(f'disk:/{self.genre}/Паспорт спектакля'))
+            for folder in path:
+                if folder['name'].lower() in self.show.lower():
+                    path = list(self.__yan.listdir(f'disk:/{self.genre}/Паспорт спектакля/{folder["name"]}'))
+                    for i in path:
+                        self.__files_url.update({i['name']: i['file']})
+                    return self.__files_url
+                return f'К сожалению, для {self.show} нет паспотра, в скором времени это исправится!' \
+                       f' Попробуйте выбрать другой файл!'
+        except ConnectionError as ex:
+            logger.exception(f'Ошибка {ex}')
 
-    # данная функция возвращает список папок в папке лебедки
-    def get_lebedki_show(self) -> list:
-        show_list = []
-        for folder in list(self.yan.listdir(f'disk:/{self.genre}')):
-            show_list.append(folder)
-        return show_list
 
-    # данная функция возвращает список с именем файла и его урл
-    def get_lebedki_file(self) -> list:
-        file_list = []
-        for file in list(self.yan.listdir(f'disk:/{self.genre}/{self.show}')):
-            file_list = [file['name'], file['file']]
-        return file_list
+class Manual(AuthYandex):
+    def __init__(self, device=None):
+        self.device = device
+        self.__yan = super().get_token()
+        self.__files_url = {}
 
-    # данная функция возвращает список папок в папке мануал
-    def get_manual_show(self) -> list:
-        show_list = []
-        for folder in list(self.yan.listdir(f'disk:/{self.genre}')):
-            show_list.append(folder)
-        return show_list
+    def get_folders(self) -> list:
+        try:
+            logger.info(f'Запрос списка мануалов')
+            return [folder for folder in list(self.__yan.listdir(f'disk:/Мануалы'))]
+        except ConnectionError as ex:
+            logger.exception(f'Ошибка {ex}')
 
-    # данная функция возвращает словарь с именами фалйлов и их урл
-    def get_manual_file(self) -> dict:
-        for files in list(self.yan.listdir(f'disk:/{self.genre}/{self.show}')):
-            self.file_dict.update({files['name']: files['file']})
-        return self.file_dict
-
-# Это для теста
-# r = FromYandex('Опера', 'Севильский Цирюльник', 'Паспорт спектакля')
-# print(r.get_files())
-# r.get_files_name()
+    def get_file(self) -> dict:
+        try:
+            logger.info(f'Запрос на мануал {self.device}')
+            return {files['name']: files['file'] for files in list(self.__yan.listdir(f'disk:/Мануалы/{self.device}'))}
+        except ConnectionError as ex:
+            logger.exception(f'Ошибка {ex}')
