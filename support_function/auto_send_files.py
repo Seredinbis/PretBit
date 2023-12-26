@@ -157,4 +157,4 @@ async def reuse_auto_send():
         for user in registered:
             ln = user.last_name
             id = user.id
-            prepare_send(ln, id)
+            await prepare_send(ln, id)
