@@ -15,6 +15,7 @@ session = Session(bind=engine)
 Base = declarative_base()
 meta_data = MetaData()
 
+
 class Employee(Base):
     __tablename__ = 'employees'
     id = Column(Integer(), primary_key=True)

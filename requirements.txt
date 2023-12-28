@@ -42,3 +42,4 @@ yarl==1.8.2
 SQLAlchemy~=2.0.20
 alembic~=1.12.0
 pandas~=2.0.3
+loguru~=0.7.2

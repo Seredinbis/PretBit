@@ -92,3 +92,5 @@ class Manual(AuthYandex):
             return {files['name']: files['file'] for files in list(self.__yan.listdir(f'disk:/Мануалы/{self.device}'))}
         except ConnectionError as ex:
             logger.exception(f'Ошибка {ex}')
+
+
