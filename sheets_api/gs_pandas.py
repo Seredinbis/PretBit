@@ -1,21 +1,19 @@
 import apiclient
 import httplib2
-import os
-import json
 import pandas as pd
 
 from sql_data.sql import session, WorkTime, Employee
 from datetime import datetime as dt
 from oauth2client.service_account import ServiceAccountCredentials
-from config_data.config import load_config
+from config_data.secret import google_token, spreadsheet_ID
+from config_data.fltrs import industrial_calendar
 
 
 class GS:
-    __abspath = os.path.abspath('.env')
-    __config = load_config(__abspath)
-    json_token: dict = __config.google_sheets_api.token
-    __google_sheets_token = json.loads(json_token)
-    __spreadsheet_ID = '1iw2mz3md74UeCIMy3eXnfBH-E2-rhwBkWosxwVZVJxM'
+    """Получение таблиц из google sheets"""
+
+    __google_sheets_token = google_token
+    __spreadsheet_ID = spreadsheet_ID
     __credentials = ServiceAccountCredentials.from_json_keyfile_dict(__google_sheets_token,
                                                                      ["https://www.googleapis.com/auth/spreadsheets",
                                                                       "https://www.googleapis.com/auth/drive"])
@@ -52,6 +50,8 @@ class GS:
 
 
 class GetInfo:
+    """Получение конкретной информации с DataFrame"""
+
     __lonely = None
 
     def __new__(cls, *args, **kwargs):
@@ -72,6 +72,7 @@ class GetInfo:
 
 
 class CreateTable:
+    """Транслейт таблиц в датафрейм"""
     month_list = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь',
                   'Ноябрь', 'Декабрь']
     __lonely = None
@@ -105,6 +106,8 @@ class CreateTable:
 
 
 class PersonalTable(CreateTable):
+    """Парсинг таблиц"""
+
     # столбцы c днем недели, и названием смены
     __col = [0, 1, 2]
     # нунежные строки
@@ -135,9 +138,10 @@ class PersonalTable(CreateTable):
     @staticmethod
     def __change_ptable_ind(indexes):
         new_indexes = []
+        col = 0
         for ind in indexes:
+            pre_ind = ind
             if ind != '':
-                col = 0
                 new_indexes.append(ind)
                 pre_ind = ind
             else:
@@ -161,47 +165,23 @@ class PersonalTable(CreateTable):
         __table = self.get_table()
         days = self.__gen_ind_check(str(day), __table.index)
         for ind in days[::-1]:
-            cell = __table.loc[ind][self.__index]
+            cell = __table.iloc[int(ind)][self.__index]
             if cell != '':
-                __work_table = [__table.loc[ind] for ind in days]
+                __work_table = [__table.iloc[int(ind)] for ind in days]
                 # если смена ночная и начинается после 20
                 if cell in self.__night_time:
                     days = self.__gen_ind_check(str(day + 1), __table.index)
-                    __work_table = __work_table + [__table.loc[ind] for ind in days]
+                    __work_table = __work_table + [__table.iloc[int(ind)] for ind in days]
                 return pd.DataFrame(__work_table)
 
 
 class LightPerson(PersonalTable):
+    """Обработка графика для конкретного работника"""
+
     __index_name = ('День:', 'День недели:', 'Наименование смены:', 'Время начала смены:', 'Время окончания смены:',
                     'Время начала перерыва:', 'Время окончания перерыва:', 'Длительность смены:', 'Ночных часов:')
     month_list = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь',
                   'Ноябрь', 'Декабрь']
-    industrial_calendar = {2023: {'Январь': 136,
-                                  'Февраль': 143,
-                                  'Март': 175,
-                                  'Апрель': 160,
-                                  'Май': 160,
-                                  'Июнь': 168,
-                                  'Июль': 168,
-                                  'Август': 184,
-                                  'Сентябрь': 168,
-                                  'Октябрь': 176,
-                                  'Ноябрь': 167,
-                                  'Декабрь': 168,
-                                  'За год': 1973},
-                           2024: {'Январь': 136,
-                                  'Февраль': 159,
-                                  'Март': 159,
-                                  'Апрель': 168,
-                                  'Май': 159,
-                                  'Июнь': 151,
-                                  'Июль': 184,
-                                  'Август': 176,
-                                  'Сентябрь': 168,
-                                  'Октябрь': 184,
-                                  'Ноябрь': 167,
-                                  'Декабрь': 168,
-                                  'За год': 1979}}
 
     def __init__(self, last_name, day=dt.now().day, month=dt.now().month, year=dt.now().year):
         self.month = month
@@ -323,7 +303,7 @@ class LightPerson(PersonalTable):
                    f' пожалуйста нажмите на кнопку не ученного месяца!</b>'
 
     def worktime_check(self, time, how):
-        normal_time = self.industrial_calendar[dt.now().year][how]
+        normal_time = industrial_calendar[dt.now().year][how]
         time = time.replace(',', '.')
         if float(time) - normal_time > 0:
             return f'{time}\nпереработка {float(time) - normal_time} ч.\n'
@@ -337,3 +317,6 @@ class LightPerson(PersonalTable):
             for val in table.loc[row]:
                 if val == 'Количество часов:':
                     return row
+
+
+

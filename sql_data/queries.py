@@ -1,7 +1,7 @@
 from .sql import session, Employee
 
 
-class QueriesGet:
+class QuerysGet:
 
     def __init__(self):
         self._session = session

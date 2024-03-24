@@ -1,7 +1,9 @@
 from aiogram.fsm.state import State, StatesGroup
 
-# пользовательские настройки Юсер id и секнод нейм устанавливаем на команде /start
+
 class UserSettings(StatesGroup):
+    """Хранилище Redis"""
+
     user_id: str = State()
     user_second_name: str = State()
     login: bool = State()

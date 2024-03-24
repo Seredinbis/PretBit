@@ -1,17 +1,60 @@
-from dataclasses import dataclass, fields
+from enum import Enum
 
 
-@dataclass()
-class Position:
+class Position(Enum):
+    LEAD_ENGINEER = 'Ведущий инженер'
+    ENGINEER = 'Инженер'
+    HEAD_CREW = 'Начальник осветительской службы'
+    HEAD_DAY = 'Начальник смены'
+    TECHNICAL = 'Техник'
+    LIGHT = 'Осветитель'
+    LIGHT_OPERATOR = 'Светооператор'
 
-    lead_enginer: str = 'Ведущий инженер'
-    enginer: str = 'Инженер'
-    head_crew: str = 'Начальник осветительской службы'
-    head_day: str = 'Начальник смены'
-    technical: str = 'Техник'
-    light: str = 'Осветитель'
-    light_operator: str = 'Светооператор'
 
-    def __iter__(self):
-        for field in fields(self):
-            yield getattr(self, field.name)
+class MainMenu(Enum):
+    TIMETABLE = 'График'
+    SUMMARY = 'Выписки'
+    TODAY = 'Сегодня'
+    CALENDAR = 'Календарь'
+    URLS = 'Ссылки'
+    SETTINGS = 'Настройки пользователя'
+
+
+class Month(Enum):
+    JANUARY = 'Январь'
+    FEBRUARY = 'Февраль'
+    MARTH = 'Март'
+    APRIL = 'Апрель'
+    MAY = 'Май'
+    JUNE = 'Июнь'
+    JULY = 'Июль'
+    AUGUST = 'Август'
+    SEPTEMBER = 'Сентябрь'
+    OCTOBER = 'Октябрь'
+    NOVEMBER = 'Ноябрь'
+    DECEMBER = 'Декабрь'
+    ALL = 'За все отработанное время'
+
+
+class Genre(Enum):
+    BALELET = 'Балет'
+    OPERA = 'Опера'
+    MANUAL = 'Мануалы'
+
+
+class ChoosePassport(Enum):
+    PASSPORT = 'Паспорт спектакля'
+    SHOW_ABSTRACT = 'Выписка спектакля'
+    FOLLOW_POST = 'Выписка водящего'
+
+
+class TimeTable(Enum):
+    TIME_TABLE = 'Общий график'
+    PERSONAL_TABLE = 'Персональный график'
+    WORK_TIME = 'Количество отработанных часов'
+
+
+class Settings(Enum):
+    MASSAGE = 'Сколько последних сообщений оставлять'
+    FILE = 'Через сколько часов удалять файлы'
+

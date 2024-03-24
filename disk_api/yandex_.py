@@ -3,9 +3,10 @@ import yadisk
 from config_data.secret import yandex_token, logs_path
 from abc import ABC, abstractmethod
 from loguru import logger
+from typing import Dict, List
 
 """loging"""
-logger.add(logs_path, format='{time} {level} {message}', level='INFO', mode='w')
+logger.add(logs_path+'/yandex_.log', format='{time} {level} {message}', level='INFO', mode='w')
 
 
 class YandexAuth:
@@ -28,7 +29,7 @@ class BaseFile(File, YandexAuth):
         self.path = path
         self.__yan = self.get_token()
 
-    async def get_files(self) -> dict:
+    async def get_files(self) -> Dict[str, str]:
         try:
             logger.info(f'Запрос на файлы {self.path}')
             path = list(self.__yan.listdir(self.path))
@@ -36,7 +37,7 @@ class BaseFile(File, YandexAuth):
         except Exception as ex:
             logger.exception(f'Ошибка {ex}')
 
-    async def get_folder(self) -> list:
+    async def get_folder(self) -> List[str]:
         try:
             logger.info(f'Запрос списка файлов в {self.path}')
             path = list(self.__yan.listdir(self.path))

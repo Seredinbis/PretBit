@@ -1,25 +1,15 @@
 import datetime
 import asyncio
-import logging
 
 from sheets_api.gs_pandas import LightPerson
-from handlers.fltrs.all_filters import genre_show_f
-from bot import bot, for_delete
-from disk_api.yandex_d import Passport
+from config_data.fltrs import genre_show_f
+from bot import bot
+from disk_api.yandex_ import Passport
 from aiogram.types.input_file import URLInputFile
 from sql_data.sql import session, Perfomance, Employee
+from loguru import logger as logger_as
 
-# блок настройки логирования
-# устанавливаем имя и уровень
-logger_as = logging.getLogger(__name__)
-logger_as.setLevel(logging.INFO)
-# настраиваем обработчик и форматор
-handler_as = logging.FileHandler(f"{__name__}.log", mode='w')
-formater_as = logging.Formatter('%(name)s %(asctime)s %(levelname)s %(message)s')
-# добавляем форматировщик к обработчику
-handler_as.setFormatter(formater_as)
-# добавляем обработчик к логеру
-logger_as.addHandler(handler_as)
+for_delete = {}
 
 
 async def time_to_zero() -> int:
@@ -84,7 +74,7 @@ async def prepare_send(user_name, user_id) -> None:
             else:
                 await asyncio.sleep(await time_to_zero())
         except Exception as ex:
-            logger_as.error(ex, exc_info=True)
+            logger_as.exception()
 
 
 async def auto_send(data, user_id) -> None:
@@ -140,7 +130,7 @@ async def auto_send(data, user_id) -> None:
                                 for_delete.update({user_id: [doc_send.message_id]})
                             await msg.delete()
                     except Exception as ex:
-                        logger_as.error(ex, exc_info=True)
+                        logger_as.error('Ошибка автосэнд')
 
 
 async def search_show(data):
