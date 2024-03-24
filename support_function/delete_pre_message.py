@@ -1,7 +1,8 @@
-from bot import bot, message_id_dict
+from bot import bot
+
+message_id_dict = {}
 
 
-# функция удаления предыдущего собщения
 async def del_pre_message(chat_id, message_id, state) -> None:
     if chat_id not in message_id_dict:
         message_id_dict.update({chat_id: []})

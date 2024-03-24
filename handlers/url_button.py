@@ -2,7 +2,7 @@ from aiogram.filters import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
-from keyboards.reply_markup.main import main_kb
+from keyboards.reply_markup.reply_builder import MainReplyKeyboard
 import support_function
 
 
@@ -15,12 +15,13 @@ async def get_url(message: Message, state: FSMContext) -> None:
     await support_function.user_tracking.where_who(where=message.text,
                                                    state=state)
     if await support_function.login_test.log_test(message=message):
+        keyboard = MainReplyKeyboard().build()
         msg = await message.answer(text='[Михайловский театр](https://mikhailovsky.ru/)'
                                         '\n[lee](https://leefilters.com/lighting/colour-effect-lighting-filters/)'
                                         '\n[rosco](https://us.rosco.com/en/products/family/filters-and-diffusions)'
                                         '\n[clay paky](https://www.claypaky.it/en/products/entertainment)'
                                         '\n[herь kakaяto](https://www.lightingschool.eu/knowledge-center/)',
-                                   reply_markup=main_kb,
+                                   reply_markup=keyboard.as_markup(),
                                    disable_web_page_preview=True,
                                    parse_mode='Markdown')
         await state.update_data(whitch_kb_was='main_kb')

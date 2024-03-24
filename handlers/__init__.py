@@ -1,4 +1,3 @@
-from .fltrs import all_filters
 from .start import router_start
 from .statement_buttons import router_statement
 from .url_button import router_url

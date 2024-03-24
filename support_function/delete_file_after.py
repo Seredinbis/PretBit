@@ -1,6 +1,8 @@
 import asyncio
 
-from bot import bot, files_id_dict
+from bot import bot
+
+files_id_dict = {}
 
 
 # функция удаления предыдущего собщения c файлом
